@@ -32,8 +32,8 @@ import { Separator } from '@/components/ui/separator'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 
 const SOURCE_MODES = [
-  { value: 'insights', label: 'Summary' },
-  { value: 'full', label: 'Full content' },
+  { value: 'insights', label: '摘要' },
+  { value: 'full', label: '全文内容' },
 ] as const
 
 type SourceMode = 'off' | 'insights' | 'full'
@@ -415,11 +415,11 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
         const response = await chatApi.buildContext(task.payload)
         const notebookName = notebooks.find((nb) => nb.id === task.notebookId)?.name ?? task.notebookId
         const contextString = JSON.stringify(response.context, null, 2)
-        const snippet = `Notebook: ${notebookName}\n${contextString}`
+        const snippet = `笔记本: ${notebookName}\n${contextString}`
         parts.push(snippet)
       } catch (error) {
         console.error('Failed to build context for notebook', task.notebookId, error)
-        throw new Error('Failed to build context. Please review your selections.')
+        throw new Error('构建上下文失败。请检查您的选择。')
       }
     }
 
@@ -429,8 +429,8 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
   const handleSubmit = useCallback(async () => {
     if (!selectedEpisodeProfile) {
       toast({
-        title: 'Episode profile required',
-        description: 'Select an episode profile before generating a podcast.',
+        title: '需要剧集配置',
+        description: '生成播客前请选择剧集配置。',
         variant: 'destructive',
       })
       return
@@ -438,8 +438,8 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
 
     if (!episodeName.trim()) {
       toast({
-        title: 'Episode name required',
-        description: 'Provide a name for the episode.',
+        title: '需要剧集名称',
+        description: '请为剧集提供名称。',
         variant: 'destructive',
       })
       return
@@ -450,8 +450,8 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
       const content = await buildContentFromSelections()
       if (!content.trim()) {
         toast({
-          title: 'Add context',
-          description: 'Select at least one source or note to include in the episode.',
+          title: '添加内容',
+          description: '请至少选择一个资源或笔记以包含在剧集中。',
           variant: 'destructive',
         })
         return
@@ -475,8 +475,8 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
     } catch (error) {
       console.error('Failed to generate podcast', error)
       toast({
-        title: 'Podcast generation failed',
-        description: error instanceof Error ? error.message : 'Please try again later.',
+        title: '播客生成失败',
+        description: error instanceof Error ? error.message : '请稍后再试。',
         variant: 'destructive',
       })
     } finally {
@@ -504,9 +504,9 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
     }}>
       <DialogContent className="w-[80vw] max-w-[1080px] max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle>Generate Podcast Episode</DialogTitle>
+          <DialogTitle>生成播客剧集</DialogTitle>
           <DialogDescription>
-            Select the content to include and configure the episode details before generating a new podcast episode.
+            在生成新播客剧集之前，选择要包含的内容并配置剧集详情。
           </DialogDescription>
         </DialogHeader>
 
@@ -515,25 +515,26 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  Content
+                  内容
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  Pick notebooks, sources, and notes to include in this episode.
+                  选择要包含在此剧集中的笔记本、资源和笔记。
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline">
+                  已选择{' '}
                   {selectedNotebookSummaries.reduce(
                     (acc, summary) => acc + summary.sources + summary.notes,
                     0
                   )}{' '}
-                  items selected
+                  个项目
                 </Badge>
                 {(tokenCount > 0 || charCount > 0) && (
                   <span className="text-xs text-muted-foreground">
-                    {tokenCount > 0 && `${formatNumber(tokenCount)} tokens`}
+                    {tokenCount > 0 && `${formatNumber(tokenCount)} 标记`}
                     {tokenCount > 0 && charCount > 0 && ' / '}
-                    {charCount > 0 && `${formatNumber(charCount)} chars`}
+                    {charCount > 0 && `${formatNumber(charCount)} 字符`}
                   </span>
                 )}
               </div>
@@ -542,11 +543,11 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
             <div className="rounded-lg border bg-muted/30">
               {notebooksQuery.isLoading ? (
                 <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading notebooks
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 正在加载笔记本...
                 </div>
               ) : notebooks.length === 0 ? (
                 <div className="p-6 text-sm text-muted-foreground">
-                  No notebooks found. Create a notebook and add content before generating a podcast.
+                  未找到笔记本。在生成播客之前，请先创建一个笔记本并添加内容。
                 </div>
               ) : (
                 <ScrollArea className="h-[60vh]">
@@ -594,12 +595,12 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
                                   </p>
                                   <p className="text-xs text-muted-foreground">
                                     {summary.sources + summary.notes > 0
-                                      ? `${summary.sources} sources, ${summary.notes} notes`
-                                      : 'No content selected'}
+                                      ? `${summary.sources} 个资源, ${summary.notes} 个笔记`
+                                      : '未选择内容'}
                                   </p>
                                 </div>
                                 <Badge variant="outline" className="text-xs">
-                                  {sources.length} sources · {notes.length} notes
+                                  {sources.length} 个资源 · {notes.length} 个笔记
                                 </Badge>
                               </div>
                             </AccordionTrigger>
@@ -609,7 +610,7 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between">
                                   <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                    Sources
+                                    资源
                                   </h4>
                                   {sourcesQueries[index]?.isFetching && (
                                     <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
@@ -617,7 +618,7 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
                                 </div>
                                 {sources.length === 0 ? (
                                   <p className="text-xs text-muted-foreground">
-                                    No sources available in this notebook.
+                                    此笔记本中没有可用资源。
                                   </p>
                                 ) : (
                                   <div className="space-y-2">
@@ -640,12 +641,12 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
                                           />
                                           <div className="flex flex-1 flex-col gap-1">
                                             <span className="text-sm font-medium text-foreground">
-                                              {source.title || 'Untitled source'}
+                                              {source.title || '无标题资源'}
                                             </span>
                                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                              <span>{source.asset?.url ? 'Link' : 'File'}</span>
+                                              <span>{source.asset?.url ? '链接' : '文件'}</span>
                                               <span>•</span>
-                                              <span>{source.embedded ? 'Embedded' : 'Not embedded'}</span>
+                                              <span>{source.embedded ? '已嵌入' : '未嵌入'}</span>
                                             </div>
                                           </div>
                                           <Select
@@ -660,7 +661,7 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
                                             disabled={mode === 'off'}
                                           >
                                             <SelectTrigger className="w-[140px]">
-                                              <SelectValue placeholder="Select mode" />
+                                              <SelectValue placeholder="选择模式" />
                                             </SelectTrigger>
                                             <SelectContent>
                                               {SOURCE_MODES.map((option) => (
@@ -688,11 +689,11 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
 
                               <div className="space-y-2">
                                 <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                  Notes
+                                  笔记
                                 </h4>
                                 {notes.length === 0 ? (
                                   <p className="text-xs text-muted-foreground">
-                                    No notes available in this notebook.
+                                    此笔记本中没有可用笔记。
                                   </p>
                                 ) : (
                                   <div className="space-y-2">
@@ -715,10 +716,10 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
                                           />
                                           <div className="flex flex-1 flex-col">
                                             <span className="text-sm font-medium text-foreground">
-                                              {note.title || 'Untitled note'}
+                                              {note.title || '无标题笔记'}
                                             </span>
                                             <span className="text-xs text-muted-foreground">
-                                              Updated {new Date(note.updated).toLocaleString()}
+                                              更新于 {new Date(note.updated).toLocaleString()}
                                             </span>
                                           </div>
                                         </div>
@@ -741,27 +742,27 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
           <div className="space-y-6">
             <div className="space-y-3">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Episode Settings
+                剧集设置
               </h3>
               {episodeProfilesQuery.isLoading ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Loading episode profiles
+                  <Loader2 className="h-4 w-4 animate-spin" /> 正在加载剧集配置...
                 </div>
               ) : episodeProfiles.length === 0 ? (
                 <div className="rounded-lg border border-dashed bg-muted/30 p-4 text-sm text-muted-foreground">
-                  No episode profiles found. Create an episode profile before generating a podcast.
+                  未找到剧集配置。在生成播客之前，请先创建一个剧集配置。
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="episode_profile">Episode profile</Label>
+                    <Label htmlFor="episode_profile">剧集配置</Label>
                     <Select
                       value={episodeProfileId}
                       onValueChange={setEpisodeProfileId}
                       disabled={episodeProfiles.length === 0}
                     >
                       <SelectTrigger id="episode_profile">
-                        <SelectValue placeholder="Select an episode profile" />
+                        <SelectValue placeholder="选择剧集配置" />
                       </SelectTrigger>
                       <SelectContent>
                         {episodeProfiles.map((profile) => (
@@ -773,32 +774,32 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
                     </Select>
                     {selectedEpisodeProfile && (
                       <p className="text-xs text-muted-foreground">
-                        Uses speaker profile <strong>{selectedEpisodeProfile.speaker_config}</strong>
+                        使用演讲者配置 <strong>{selectedEpisodeProfile.speaker_config}</strong>
                       </p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="episode_name">Episode name</Label>
+                    <Label htmlFor="episode_name">剧集名称</Label>
                     <Input
                       id="episode_name"
                       value={episodeName}
                       onChange={(event) => setEpisodeName(event.target.value)}
-                      placeholder="e.g., AI and the Future of Work"
+                      placeholder="例如：人工智能与工作的未来"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="instructions">Additional instructions</Label>
+                    <Label htmlFor="instructions">附加指令</Label>
                     <Textarea
                       id="instructions"
                       value={instructions}
                       onChange={(event) => setInstructions(event.target.value)}
-                      placeholder="Any supplemental guidance to append to the episode briefing..."
+                      placeholder="任何附加的引导，将追加到剧集简报中..."
                       rows={6}
                     />
                     <p className="text-xs text-muted-foreground">
-                      These instructions will be appended to the episode profile&apos;s default briefing.
+                      这些指令将追加到剧集配置的默认简报中。
                     </p>
                   </div>
                 </div>
@@ -814,14 +815,14 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating episode...
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 正在生成剧集...
                   </>
                 ) : (
-                  'Generate Podcast'
+                  '生成播客'
                 )}
               </Button>
               <p className="text-xs text-muted-foreground">
-                The episode will appear in the Episodes list once generation starts. Refresh the list to monitor progress.
+                生成开始后，剧集将出现在剧集列表中。刷新列表以监控进度。
               </p>
             </div>
           </div>

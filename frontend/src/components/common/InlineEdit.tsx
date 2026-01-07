@@ -20,7 +20,7 @@ export function InlineEdit({
   inputClassName,
   placeholder,
   multiline = false,
-  emptyText = 'Click to edit'
+  emptyText = '点击进行编辑'
 }: InlineEditProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(value)

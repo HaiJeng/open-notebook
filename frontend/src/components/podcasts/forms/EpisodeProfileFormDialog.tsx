@@ -32,18 +32,18 @@ import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 
 const episodeProfileSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().min(1, '名称是必填项'),
   description: z.string().optional(),
-  speaker_config: z.string().min(1, 'Speaker profile is required'),
-  outline_provider: z.string().min(1, 'Outline provider is required'),
-  outline_model: z.string().min(1, 'Outline model is required'),
-  transcript_provider: z.string().min(1, 'Transcript provider is required'),
-  transcript_model: z.string().min(1, 'Transcript model is required'),
-  default_briefing: z.string().min(1, 'Default briefing is required'),
+  speaker_config: z.string().min(1, '演讲者配置是必填项'),
+  outline_provider: z.string().min(1, '大纲提供商是必填项'),
+  outline_model: z.string().min(1, '大纲模型是必填项'),
+  transcript_provider: z.string().min(1, '脚本提供商是必填项'),
+  transcript_model: z.string().min(1, '脚本模型是必填项'),
+  default_briefing: z.string().min(1, '默认简报是必填项'),
   num_segments: z.number()
-    .int('Must be an integer')
-    .min(3, 'At least 3 segments')
-    .max(20, 'Maximum 20 segments'),
+    .int('必须是整数')
+    .min(3, '至少 3 个段落')
+    .max(20, '最多 20 个段落'),
 })
 
 export type EpisodeProfileFormValues = z.infer<typeof episodeProfileSchema>
@@ -185,29 +185,27 @@ export function EpisodeProfileFormDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? 'Edit Episode Profile' : 'Create Episode Profile'}
+            {isEdit ? '编辑剧集模板' : '创建剧集模板'}
           </DialogTitle>
           <DialogDescription>
-            Define how episodes should be generated and which speaker configuration
-            they use by default.
+            定义剧集的生成方式以及它们默认使用的演讲者配置。
           </DialogDescription>
         </DialogHeader>
 
         {speakerProfiles.length === 0 ? (
           <Alert className="bg-amber-50 text-amber-900">
-            <AlertTitle>No speaker profiles available</AlertTitle>
+            <AlertTitle>没有可用的演讲者模板</AlertTitle>
             <AlertDescription>
-              Create a speaker profile before configuring an episode profile.
+              在配置剧集模板之前，请先创建一个演讲者模板。
             </AlertDescription>
           </Alert>
         ) : null}
 
         {providers.length === 0 ? (
           <Alert className="bg-amber-50 text-amber-900">
-            <AlertTitle>No language models available</AlertTitle>
+            <AlertTitle>没有可用的语言模型</AlertTitle>
             <AlertDescription>
-              Add language models in the Models section to configure outline and transcript
-              generation.
+              在“模型”部分添加语言模型，以配置大纲和脚本生成。
             </AlertDescription>
           </Alert>
         ) : null}
@@ -215,15 +213,15 @@ export function EpisodeProfileFormDialog({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-2">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="name">Profile name *</Label>
-              <Input id="name" placeholder="Tech discussion" {...register('name')} />
+              <Label htmlFor="name">模板名称 *</Label>
+              <Input id="name" placeholder="技术讨论" {...register('name')} />
               {errors.name ? (
                 <p className="text-xs text-red-600">{errors.name.message}</p>
               ) : null}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="num_segments">Segments *</Label>
+              <Label htmlFor="num_segments">段落数量 *</Label>
               <Input
                 id="num_segments"
                 type="number"
@@ -237,11 +235,11 @@ export function EpisodeProfileFormDialog({
             </div>
 
             <div className="md:col-span-2 space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">描述</Label>
               <Textarea
                 id="description"
                 rows={3}
-                placeholder="Short summary of when to use this profile"
+                placeholder="简要说明何时使用此模板"
                 {...register('description')}
               />
             </div>
@@ -250,7 +248,7 @@ export function EpisodeProfileFormDialog({
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Speaker configuration
+                演讲者配置
               </h3>
               <Separator className="mt-2" />
             </div>
@@ -259,10 +257,10 @@ export function EpisodeProfileFormDialog({
               name="speaker_config"
               render={({ field }) => (
                 <div className="space-y-2">
-                  <Label>Speaker profile *</Label>
+                  <Label>演讲者模板 *</Label>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a speaker profile" />
+                      <SelectValue placeholder="选择演讲者模板" />
                     </SelectTrigger>
                     <SelectContent>
                       {speakerProfiles.map((profile) => (
@@ -285,7 +283,7 @@ export function EpisodeProfileFormDialog({
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Outline generation
+                大纲生成
               </h3>
               <Separator className="mt-2" />
             </div>
@@ -295,10 +293,10 @@ export function EpisodeProfileFormDialog({
                 name="outline_provider"
                 render={({ field }) => (
                   <div className="space-y-2">
-                    <Label>Provider *</Label>
+                    <Label>提供商 *</Label>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select provider" />
+                        <SelectValue placeholder="选择提供商" />
                       </SelectTrigger>
                       <SelectContent>
                         {providers.map((provider) => (
@@ -322,10 +320,10 @@ export function EpisodeProfileFormDialog({
                 name="outline_model"
                 render={({ field }) => (
                   <div className="space-y-2">
-                    <Label>Model *</Label>
+                    <Label>模型 *</Label>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select model" />
+                        <SelectValue placeholder="选择模型" />
                       </SelectTrigger>
                       <SelectContent>
                         {availableOutlineModels.map((model) => (
@@ -349,7 +347,7 @@ export function EpisodeProfileFormDialog({
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Transcript generation
+                脚本生成
               </h3>
               <Separator className="mt-2" />
             </div>
@@ -359,10 +357,10 @@ export function EpisodeProfileFormDialog({
                 name="transcript_provider"
                 render={({ field }) => (
                   <div className="space-y-2">
-                    <Label>Provider *</Label>
+                    <Label>提供商 *</Label>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select provider" />
+                        <SelectValue placeholder="选择提供商" />
                       </SelectTrigger>
                       <SelectContent>
                         {providers.map((provider) => (
@@ -386,10 +384,10 @@ export function EpisodeProfileFormDialog({
                 name="transcript_model"
                 render={({ field }) => (
                   <div className="space-y-2">
-                    <Label>Model *</Label>
+                    <Label>模型 *</Label>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select model" />
+                        <SelectValue placeholder="选择模型" />
                       </SelectTrigger>
                       <SelectContent>
                         {availableTranscriptModels.map((model) => (
@@ -411,11 +409,11 @@ export function EpisodeProfileFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="default_briefing">Default briefing *</Label>
+            <Label htmlFor="default_briefing">默认简报 *</Label>
             <Textarea
               id="default_briefing"
               rows={6}
-              placeholder="Outline the structure, tone, and goals for this episode format"
+              placeholder="概述此剧集格式的结构、语气和目标"
               {...register('default_briefing')}
             />
             {errors.default_briefing ? (
@@ -431,16 +429,16 @@ export function EpisodeProfileFormDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              取消
             </Button>
             <Button type="submit" disabled={disableSubmit}>
               {isSubmitting
                 ? isEdit
-                  ? 'Saving…'
-                  : 'Creating…'
+                  ? '正在保存...'
+                  : '正在创建...'
                 : isEdit
-                  ? 'Save changes'
-                  : 'Create profile'}
+                  ? '保存更改'
+                  : '创建模板'}
             </Button>
           </div>
         </form>

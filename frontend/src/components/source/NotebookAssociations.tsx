@@ -108,10 +108,10 @@ export function NotebookAssociations({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
-            Notebooks
+            笔记本
           </CardTitle>
           <CardDescription>
-            Manage which notebooks contain this source
+            管理包含此资源的笔记本
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -129,14 +129,14 @@ export function NotebookAssociations({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
-            Notebooks
+            笔记本
           </CardTitle>
           <CardDescription>
-            Manage which notebooks contain this source
+            管理包含此资源的笔记本
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">No notebooks available</p>
+          <p className="text-sm text-muted-foreground">无可用笔记本</p>
         </CardContent>
       </Card>
     )
@@ -203,7 +203,7 @@ export function NotebookAssociations({
               onClick={handleCancel}
               disabled={isSaving}
             >
-              Cancel
+              取消
             </Button>
             <Button
               size="sm"
@@ -213,10 +213,10 @@ export function NotebookAssociations({
               {isSaving ? (
                 <>
                   <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  保存中...
                 </>
               ) : (
-                'Save Changes'
+                '保存更改'
               )}
             </Button>
           </div>

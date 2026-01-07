@@ -43,35 +43,35 @@ const STATUS_META: Record<
   { label: string; className: string }
 > = {
   running: {
-    label: 'Processing',
+    label: '处理中',
     className: 'bg-amber-100 text-amber-800 border-amber-200',
   },
   processing: {
-    label: 'Processing',
+    label: '处理中',
     className: 'bg-amber-100 text-amber-800 border-amber-200',
   },
   completed: {
-    label: 'Completed',
+    label: '已完成',
     className: 'bg-emerald-100 text-emerald-800 border-emerald-200',
   },
   failed: {
-    label: 'Failed',
+    label: '失败',
     className: 'bg-red-100 text-red-800 border-red-200',
   },
   error: {
-    label: 'Failed',
+    label: '失败',
     className: 'bg-red-100 text-red-800 border-red-200',
   },
   pending: {
-    label: 'Pending',
+    label: '待处理',
     className: 'bg-sky-100 text-sky-800 border-sky-200',
   },
   submitted: {
-    label: 'Pending',
+    label: '待处理',
     className: 'bg-sky-100 text-sky-800 border-sky-200',
   },
   unknown: {
-    label: 'Unknown',
+    label: '未知',
     className: 'bg-muted text-muted-foreground border-transparent',
   },
 }
@@ -183,7 +183,7 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
         setAudioSrc(revokeUrl)
       } catch (error) {
         console.error('Unable to load podcast audio', error)
-        setAudioError('Audio unavailable')
+        setAudioError('音频不可用')
         setAudioSrc(undefined)
       }
     }
@@ -219,23 +219,23 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
               <StatusBadge status={episode.job_status} />
             </div>
             <p className="text-xs text-muted-foreground">
-              Profile: {episode.episode_profile?.name ?? 'Unknown'}
-              {createdLabel ? ` • Created ${createdLabel}` : ''}
+              配置: {episode.episode_profile?.name ?? '未知'}
+              {createdLabel ? ` • 创建于 ${createdLabel}` : ''}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
-                  <InfoIcon className="mr-2 h-4 w-4" /> Details
+                  <InfoIcon className="mr-2 h-4 w-4" /> 详情
                 </Button>
               </DialogTrigger>
               <DialogContent className="w-[min(90vw,720px)] max-h-[85vh] overflow-hidden">
                 <DialogHeader>
                   <DialogTitle>{episode.name}</DialogTitle>
                   <DialogDescription>
-                    {episode.episode_profile?.name ?? 'Unknown profile'}
-                    {createdLabel ? ` • Created ${createdLabel}` : ''}
+                    {episode.episode_profile?.name ?? '未知配置'}
+                    {createdLabel ? ` • 创建于 ${createdLabel}` : ''}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 overflow-hidden">
@@ -247,19 +247,19 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
 
                   <Tabs defaultValue="summary" className="h-[60vh] flex flex-col">
                     <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="summary">Summary</TabsTrigger>
-                      <TabsTrigger value="outline">Outline</TabsTrigger>
-                      <TabsTrigger value="transcript">Transcript</TabsTrigger>
+                      <TabsTrigger value="summary">摘要</TabsTrigger>
+                      <TabsTrigger value="outline">大纲</TabsTrigger>
+                      <TabsTrigger value="transcript">转录</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="summary" className="flex-1 overflow-hidden">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6">
                           <section className="space-y-2">
-                            <h4 className="text-sm font-semibold text-foreground">Episode Profile</h4>
+                            <h4 className="text-sm font-semibold text-foreground">剧集配置</h4>
                             <div className="grid gap-2 text-sm md:grid-cols-2">
                               <div>
-                                <p className="text-muted-foreground">Outline Model</p>
+                                <p className="text-muted-foreground">大纲模型</p>
                                 <p>
                                   {episode.episode_profile?.outline_provider ?? '—'} /
                                   {' '}
@@ -267,7 +267,7 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
                                 </p>
                               </div>
                               <div>
-                                <p className="text-muted-foreground">Transcript Model</p>
+                                <p className="text-muted-foreground">转录模型</p>
                                 <p>
                                   {episode.episode_profile?.transcript_provider ?? '—'} /
                                   {' '}
@@ -275,7 +275,7 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
                                 </p>
                               </div>
                               <div>
-                                <p className="text-muted-foreground">Segments</p>
+                                <p className="text-muted-foreground">段落数</p>
                                 <p>{episode.episode_profile?.num_segments ?? '—'}</p>
                               </div>
                             </div>
@@ -287,7 +287,7 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
                           </section>
 
                           <section className="space-y-2">
-                            <h4 className="text-sm font-semibold text-foreground">Speaker Profile</h4>
+                            <h4 className="text-sm font-semibold text-foreground">演讲者配置</h4>
                             <p className="text-xs text-muted-foreground">
                               {episode.speaker_profile?.tts_provider ?? '—'} /{' '}
                               {episode.speaker_profile?.tts_model ?? '—'}
@@ -298,12 +298,12 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
                                 className="rounded-md border bg-muted/20 p-3 text-xs"
                               >
                                 <p className="font-semibold text-foreground">{speaker.name}</p>
-                                <p className="text-muted-foreground">Voice ID: {speaker.voice_id}</p>
+                                <p className="text-muted-foreground">声音 ID: {speaker.voice_id}</p>
                                 <p className="mt-2 whitespace-pre-wrap text-muted-foreground">
-                                  <span className="font-semibold">Backstory:</span> {speaker.backstory}
+                                  <span className="font-semibold">背景故事:</span> {speaker.backstory}
                                 </p>
                                 <p className="mt-2 whitespace-pre-wrap text-muted-foreground">
-                                  <span className="font-semibold">Personality:</span> {speaker.personality}
+                                  <span className="font-semibold">性格特征:</span> {speaker.personality}
                                 </p>
                               </div>
                             ))}
@@ -311,7 +311,7 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
 
                           {episode.briefing ? (
                             <section className="space-y-2">
-                              <h4 className="text-sm font-semibold text-foreground">Briefing</h4>
+                              <h4 className="text-sm font-semibold text-foreground">简报</h4>
                               <div className="rounded border bg-muted/30 p-3 text-xs whitespace-pre-wrap">
                                 {episode.briefing}
                               </div>
@@ -328,17 +328,17 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
                             {outlineSegments.map((segment, index) => (
                               <div key={index} className="rounded border bg-muted/20 p-3 text-xs space-y-1">
                                 <div className="flex items-center justify-between gap-2">
-                                  <p className="font-semibold text-foreground">{segment.name ?? `Segment ${index + 1}`}</p>
+                                  <p className="font-semibold text-foreground">{segment.name ?? `段落 ${index + 1}`}</p>
                                   {segment.size ? (
                                     <Badge variant="outline" className="text-[10px] uppercase tracking-wide">{segment.size}</Badge>
                                   ) : null}
                                 </div>
-                                <p className="text-muted-foreground whitespace-pre-wrap">{segment.description ?? 'No description provided.'}</p>
+                                <p className="text-muted-foreground whitespace-pre-wrap">{segment.description ?? '暂无描述。'}</p>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <p className="text-xs text-muted-foreground">No outline available.</p>
+                          <p className="text-xs text-muted-foreground">暂无大纲。</p>
                         )}
                       </ScrollArea>
                     </TabsContent>
@@ -348,12 +348,12 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
                         {transcriptEntries.length > 0 ? (
                           transcriptEntries.map((entry, index) => (
                             <div key={index} className="rounded border bg-muted/20 p-3 text-xs space-y-1">
-                              <p className="font-semibold text-foreground">{entry.speaker ?? 'Speaker'}</p>
+                              <p className="font-semibold text-foreground">{entry.speaker ?? '演讲者'}</p>
                               <p className="text-muted-foreground whitespace-pre-wrap">{entry.dialogue ?? ''}</p>
                             </div>
                           ))
                         ) : (
-                          <p className="text-xs text-muted-foreground">No transcript available.</p>
+                          <p className="text-xs text-muted-foreground">暂无转录内容。</p>
                         )}
                       </ScrollArea>
                     </TabsContent>
@@ -365,20 +365,20 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
               <AlertDialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="text-destructive">
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
+                  删除
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete episode?</AlertDialogTitle>
+                  <AlertDialogTitle>删除剧集？</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will remove “{episode.name}” and its audio file permanently.
+                    这将永久移除“{episode.name}”及其音频文件。
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>取消</AlertDialogCancel>
                   <AlertDialogAction onClick={handleDelete} disabled={deleting}>
-                    {deleting ? 'Deleting…' : 'Delete'}
+                    {deleting ? '删除中…' : '删除'}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

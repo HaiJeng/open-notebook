@@ -18,7 +18,7 @@ export function MessageActions({ content, notebookId }: MessageActionsProps) {
 
   const handleSaveToNote = () => {
     if (!notebookId) {
-      toast.error('Cannot save note: notebook ID not available')
+      toast.error('无法保存笔记：笔记本 ID 不可用')
       return
     }
 
@@ -35,7 +35,7 @@ export function MessageActions({ content, notebookId }: MessageActionsProps) {
       // Try modern clipboard API first
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(content)
-        toast.success('Message copied to clipboard')
+        toast.success('消息已复制到剪贴板')
         setCopySuccess(true)
         setTimeout(() => setCopySuccess(false), 2000)
       } else {
@@ -51,11 +51,11 @@ export function MessageActions({ content, notebookId }: MessageActionsProps) {
 
         try {
           document.execCommand('copy')
-          toast.success('Message copied to clipboard')
+          toast.success('消息已复制到剪贴板')
           setCopySuccess(true)
           setTimeout(() => setCopySuccess(false), 2000)
         } catch {
-          toast.error('Failed to copy message')
+          toast.error('复制消息失败')
         }
 
         document.body.removeChild(textArea)
@@ -87,7 +87,7 @@ export function MessageActions({ content, notebookId }: MessageActionsProps) {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Save to note</p>
+              <p>保存到笔记</p>
             </TooltipContent>
           </Tooltip>
         )}
@@ -108,7 +108,7 @@ export function MessageActions({ content, notebookId }: MessageActionsProps) {
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Copy to clipboard</p>
+            <p>复制到剪贴板</p>
           </TooltipContent>
         </Tooltip>
       </div>

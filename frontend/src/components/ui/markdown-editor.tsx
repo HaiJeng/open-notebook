@@ -29,7 +29,7 @@ export const MarkdownEditor = forwardRef<HTMLDivElement, MarkdownEditorProps>(
           height={height}
           hideToolbar={hideToolbar}
           textareaProps={{
-            placeholder: placeholder || 'Enter markdown...',
+            placeholder: placeholder || '输入 Markdown 内容...',
           }}
           data-color-mode="light"
         />

@@ -14,12 +14,19 @@ interface ModelSelectorProps {
   disabled?: boolean
 }
 
+const MODEL_TYPE_LABELS = {
+  language: '语言',
+  embedding: '嵌入',
+  speech_to_text: '语音转文本',
+  text_to_speech: '文本转语音'
+}
+
 export function ModelSelector({ 
   label, 
   modelType, 
   value, 
   onChange, 
-  placeholder = 'Select a model',
+  placeholder = '选择模型',
   disabled = false 
 }: ModelSelectorProps) {
   const { data: models, isLoading } = useModels()
@@ -40,7 +47,7 @@ export function ModelSelector({
             </div>
           ) : filteredModels.length === 0 ? (
             <div className="text-sm text-muted-foreground py-2 px-2">
-              No {modelType.replace('_', ' ')} models available
+              没有可用的 {MODEL_TYPE_LABELS[modelType]} 模型
             </div>
           ) : (
             filteredModels.map((model) => (

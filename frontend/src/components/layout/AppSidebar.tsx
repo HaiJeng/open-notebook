@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -40,41 +40,41 @@ import {
   Command,
 } from 'lucide-react'
 
-const navigation = [
-  {
-    title: '收集',
-    items: [
-      { name: '资源', href: '/sources', icon: FileText },
-    ],
-  },
-  {
-    title: '处理',
-    items: [
-      { name: '笔记本', href: '/notebooks', icon: Book },
-      { name: '询问和搜索', href: '/search', icon: Search },
-    ],
-  },
-  {
-    title: '创建',
-    items: [
-      { name: '播客', href: '/podcasts', icon: Mic },
-    ],
-  },
-  {
-    title: '管理',
-    items: [
-      { name: '模型', href: '/models', icon: Bot },
-      { name: '转换', href: '/transformations', icon: Shuffle },
-      { name: '设置', href: '/settings', icon: Settings },
-      { name: '高级', href: '/advanced', icon: Wrench },
-    ],
-  },
-] as const
-
 type CreateTarget = 'source' | 'notebook' | 'podcast'
 
 export function AppSidebar() {
   const pathname = usePathname()
+  
+  const navigation = useMemo(() => [
+    {
+      title: '收集',
+      items: [
+        { name: '资源', href: '/sources', icon: FileText },
+      ],
+    },
+    {
+      title: '处理',
+      items: [
+        { name: '笔记本', href: '/notebooks', icon: Book },
+        { name: '搜索', href: '/search', icon: Search },
+      ],
+    },
+    {
+      title: '创建',
+      items: [
+        { name: '播客', href: '/podcasts', icon: Mic },
+      ],
+    },
+    {
+      title: '管理',
+      items: [
+        { name: '模型', href: '/models', icon: Bot },
+        { name: '转换', href: '/transformations', icon: Shuffle },
+        { name: '设置', href: '/settings', icon: Settings },
+        { name: '高级', href: '/advanced', icon: Wrench },
+      ],
+    },
+  ], [])
   const { logout } = useAuth()
   const { isCollapsed, toggleCollapse } = useSidebarStore()
   const { openSourceDialog, openNotebookDialog, openPodcastDialog } = useCreateDialogs()
@@ -298,14 +298,14 @@ export function AppSidebar() {
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <Command className="h-3 w-3" />
-                  快捷操作
+                  快速操作
                 </span>
                 <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
                   {isMac ? <span className="text-xs">⌘</span> : <span>Ctrl+</span>}K
                 </kbd>
               </div>
               <p className="mt-1 text-[10px] text-sidebar-foreground/40">
-                导航、搜索、询问、主题
+                快速访问所有功能
               </p>
             </div>
           )}
@@ -341,7 +341,7 @@ export function AppSidebar() {
                   <LogOut className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="right">登出</TooltipContent>
+              <TooltipContent side="right">退出登录</TooltipContent>
             </Tooltip>
           ) : (
             <Button
@@ -350,7 +350,7 @@ export function AppSidebar() {
               onClick={logout}
             >
               <LogOut className="h-4 w-4" />
-              登出
+              退出登录
             </Button>
           )}
         </div>

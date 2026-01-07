@@ -33,11 +33,11 @@ export function ProviderStatus({ providers }: ProviderStatusProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>AI Providers</CardTitle>
+        <CardTitle>AI 提供商</CardTitle>
         <CardDescription>
-          Configure providers through environment variables to enable their models. 
+          通过环境变量配置提供商以启用其模型。 
           <span className="ml-1">
-            {providers.available.length} of {allProviders.length} configured
+            已配置 {providers.available.length} / {allProviders.length}
           </span>
         </CardDescription>
       </CardHeader>
@@ -79,16 +79,20 @@ export function ProviderStatus({ providers }: ProviderStatusProps) {
                       {supportedTypes.length > 0 ? (
                         supportedTypes.map((type) => (
                           <Badge key={type} variant="secondary" className="text-xs font-medium">
-                            {type.replace('_', ' ')}
+                            {type === 'language' ? '语言' : 
+                             type === 'embedding' ? '嵌入' : 
+                             type === 'text_to_speech' ? '文本转语音' : 
+                             type === 'speech_to_text' ? '语音转文本' : 
+                             type.replace('_', ' ')}
                           </Badge>
                         ))
                       ) : (
-                        <Badge variant="outline" className="text-xs">No models</Badge>
+                        <Badge variant="outline" className="text-xs">无模型</Badge>
                       )}
                     </div>
                   ) : (
                     <Badge variant="outline" className="text-xs text-muted-foreground border-dashed">
-                      Not configured
+                      未配置
                     </Badge>
                   )}
                 </div>
@@ -104,7 +108,7 @@ export function ProviderStatus({ providers }: ProviderStatusProps) {
               onClick={() => setExpanded((prev) => !prev)}
               className="text-sm font-medium text-primary hover:underline"
             >
-              {expanded ? 'See less' : `See all ${allProviders.length} providers`}
+              {expanded ? '查看更少' : `查看所有 ${allProviders.length} 个提供商`}
             </button>
           </div>
         ) : null}
@@ -116,7 +120,7 @@ export function ProviderStatus({ providers }: ProviderStatusProps) {
             rel="noopener noreferrer"
             className="text-sm text-primary hover:underline"
           >
-            Learn how to configure providers →
+            了解如何配置提供商 →
           </a>
         </div>
       </CardContent>

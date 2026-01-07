@@ -15,6 +15,7 @@ library/open-notebook-cn:latest        (应用镜像 - 包含应用代码)
 ### 方式 1: 使用构建脚本（推荐）
 
 **Windows:**
+
 ```bash
 # 首次构建（构建基础镜像 + 应用镜像）
 build-docker.bat --build-base
@@ -24,6 +25,7 @@ build-docker.bat
 ```
 
 **Linux/Mac:**
+
 ```bash
 # 首次构建（构建基础镜像 + 应用镜像）
 chmod +x build-docker.sh
@@ -75,12 +77,14 @@ docker-compose up -d
 ### 何时重建基础镜像？
 
 **需要重建的情况：**
+
 - ✅ 首次使用
 - ✅ 升级 Node.js 版本
 - ✅ 添加新的系统依赖（apt-get install）
 - ✅ 更新 Python 基础镜像版本
 
 **不需要重建的情况：**
+
 - ❌ 修改应用代码
 - ❌ 更新 Python 包依赖（pyproject.toml）
 - ❌ 更新 NPM 包依赖（package.json）
@@ -89,6 +93,7 @@ docker-compose up -d
 ### 何时只构建应用镜像？
 
 **日常开发和测试时：**
+
 ```bash
 # Windows
 build-docker.bat
@@ -154,6 +159,7 @@ Error: pull access denied for library/open-notebook-base
 ```
 
 **解决方法：** 先构建基础镜像
+
 ```bash
 build-docker.bat --build-base
 ```
@@ -161,6 +167,7 @@ build-docker.bat --build-base
 ### 问题 2: Node.js 下载失败
 
 **解决方法：** 手动下载
+
 ```bash
 mkdir -p docker-deps
 cd docker-deps
@@ -171,6 +178,7 @@ curl -LO https://npmmirror.com/mirrors/node/v20.18.2/node-v20.18.2-linux-x64.tar
 ### 问题 3: BuildKit 缓存失效
 
 **解决方法：** 确保启用 BuildKit
+
 ```bash
 export DOCKER_BUILDKIT=1  # Linux/Mac
 set DOCKER_BUILDKIT=1     # Windows

@@ -65,7 +65,7 @@ export function ModelSelector({
     if (defaultModel) {
       return defaultModel.name
     }
-    return 'Default Model'
+    return '默认模型'
   }, [currentModel, languageModels, defaultModel])
 
   const handleSave = () => {
@@ -98,24 +98,24 @@ export function ModelSelector({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5" />
-            Model Configuration
+            模型配置
           </DialogTitle>
           <DialogDescription>
-            Override the default model for this chat session. Leave empty to use the system default.
+            为此对话会话覆盖默认模型。留空则使用系统默认模型。
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="model">Model</Label>
+            <Label htmlFor="model">模型</Label>
             <Select value={selectedModel} onValueChange={setSelectedModel}>
               <SelectTrigger id="model">
-                <SelectValue placeholder="Select a model (or use default)" />
+                <SelectValue placeholder="选择模型（或使用默认模型）" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="default">
                   <div className="flex items-center justify-between w-full">
                     <span>
-                      {defaultModel ? `Default (${defaultModel.name})` : 'System Default'}
+                      {defaultModel ? `默认 (${defaultModel.name})` : '系统默认'}
                     </span>
                     {defaultModel?.provider && (
                       <span className="text-xs text-muted-foreground ml-2">
@@ -146,17 +146,17 @@ export function ModelSelector({
           {selectedModel && selectedModel !== 'default' && (
             <div className="rounded-lg bg-muted p-3">
               <p className="text-sm text-muted-foreground">
-                This session will use <strong>{languageModels.find(m => m.id === selectedModel)?.name}</strong> instead of the default model.
+                此会话将使用 <strong>{languageModels.find(m => m.id === selectedModel)?.name}</strong> 而不是默认模型。
               </p>
             </div>
           )}
         </div>
         <DialogFooter className="flex justify-between">
           <Button variant="outline" onClick={handleReset}>
-            Reset to Default
+            重置为默认
           </Button>
           <Button onClick={handleSave}>
-            Save Changes
+            保存更改
           </Button>
         </DialogFooter>
       </DialogContent>

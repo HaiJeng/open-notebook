@@ -38,7 +38,7 @@ export function ContextIndicator({
   if (!hasContext) {
     return (
       <div className={cn('flex-shrink-0 text-xs text-muted-foreground py-2 px-3 border-t', className)}>
-        No sources or notes included in context. Toggle icons on cards to include them.
+        上下文中未包含资源或笔记。点击卡片上的图标以包含它们。
       </div>
     )
   }
@@ -46,7 +46,7 @@ export function ContextIndicator({
   return (
     <div className={cn('flex-shrink-0 flex items-center justify-between gap-2 py-2 px-3 border-t bg-muted/30', className)}>
       <div className="flex items-center gap-2">
-        <span className="text-xs font-medium text-muted-foreground">Context:</span>
+        <span className="text-xs font-medium text-muted-foreground">上下文：</span>
 
         <div className="flex items-center gap-1.5">
           {sourcesInsights > 0 && (
@@ -58,7 +58,7 @@ export function ContextIndicator({
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Insights for {sourcesInsights} source{sourcesInsights !== 1 ? 's' : ''}</p>
+                <p>包含 {sourcesInsights} 个资源的见解</p>
               </TooltipContent>
             </Tooltip>
           )}
@@ -72,7 +72,7 @@ export function ContextIndicator({
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{sourcesFull} full source{sourcesFull !== 1 ? 's' : ''}</p>
+                <p>{sourcesFull} 个完整资源</p>
               </TooltipContent>
             </Tooltip>
           )}
@@ -91,7 +91,7 @@ export function ContextIndicator({
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{notesCount} full note{notesCount !== 1 ? 's' : ''}</p>
+                <p>{notesCount} 条完整笔记</p>
               </TooltipContent>
             </Tooltip>
           </>
@@ -101,13 +101,13 @@ export function ContextIndicator({
       {(tokenCount !== undefined || charCount !== undefined) && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           {tokenCount !== undefined && tokenCount > 0 && (
-            <span>{formatNumber(tokenCount)} tokens</span>
+            <span>{formatNumber(tokenCount)} 标记</span>
           )}
           {tokenCount !== undefined && charCount !== undefined && tokenCount > 0 && charCount > 0 && (
             <span>/</span>
           )}
           {charCount !== undefined && charCount > 0 && (
-            <span>{formatNumber(charCount)} chars</span>
+            <span>{formatNumber(charCount)} 字符</span>
           )}
         </div>
       )}

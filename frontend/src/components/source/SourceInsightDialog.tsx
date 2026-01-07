@@ -71,7 +71,7 @@ export function SourceInsightDialog({ open, onOpenChange, insight, onDelete }: S
       <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between gap-2">
-            <span>Source Insight</span>
+            <span>资源见解</span>
             <div className="flex items-center gap-2">
               {displayInsight?.insight_type && (
                 <Badge variant="outline" className="text-xs uppercase">
@@ -86,7 +86,7 @@ export function SourceInsightDialog({ open, onOpenChange, insight, onDelete }: S
                   className="gap-1"
                 >
                   <FileText className="h-3 w-3" />
-                  View Source
+                  查看资源
                 </Button>
               )}
             </div>
@@ -96,8 +96,8 @@ export function SourceInsightDialog({ open, onOpenChange, insight, onDelete }: S
         {showDeleteConfirm ? (
           <div className="flex flex-col items-center justify-center py-8 gap-4">
             <p className="text-center text-muted-foreground">
-              Are you sure you want to delete this insight?<br />
-              <span className="text-sm">This action cannot be undone.</span>
+              您确定要删除此见解吗？<br />
+              <span className="text-sm">此操作无法撤销。</span>
             </p>
             <div className="flex gap-2">
               <Button
@@ -105,14 +105,14 @@ export function SourceInsightDialog({ open, onOpenChange, insight, onDelete }: S
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={isDeleting}
               >
-                Cancel
+                取消
               </Button>
               <Button
                 variant="destructive"
                 onClick={handleDelete}
                 disabled={isDeleting}
               >
-                {isDeleting ? 'Deleting...' : 'Delete'}
+                {isDeleting ? '删除中...' : '删除'}
               </Button>
             </div>
           </div>
@@ -120,7 +120,7 @@ export function SourceInsightDialog({ open, onOpenChange, insight, onDelete }: S
           <div className="flex-1 overflow-y-auto min-h-0">
             {isLoading ? (
               <div className="flex items-center justify-center py-10">
-                <span className="text-sm text-muted-foreground">Loading insight…</span>
+                <span className="text-sm text-muted-foreground">正在加载见解…</span>
               </div>
             ) : displayInsight ? (
               <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none">
@@ -143,7 +143,7 @@ export function SourceInsightDialog({ open, onOpenChange, insight, onDelete }: S
                 </ReactMarkdown>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No insight selected.</p>
+              <p className="text-sm text-muted-foreground">未选择见解。</p>
             )}
           </div>
         )}

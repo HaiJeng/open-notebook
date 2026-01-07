@@ -78,9 +78,9 @@ export function SettingsForm() {
   if (error) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>Failed to load settings</AlertTitle>
+        <AlertTitle>加载设置失败</AlertTitle>
         <AlertDescription>
-          {error instanceof Error ? error.message : 'An unexpected error occurred.'}
+          {error instanceof Error ? error.message : '发生了意外错误。'}
         </AlertDescription>
       </Alert>
     )
@@ -90,14 +90,14 @@ export function SettingsForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Content Processing</CardTitle>
+          <CardTitle>内容处理</CardTitle>
           <CardDescription>
-            Configure how documents and URLs are processed
+            配置文档和 URL 的处理方式
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            <Label htmlFor="doc_engine">Document Processing Engine</Label>
+            <Label htmlFor="doc_engine">文档处理引擎</Label>
             <Controller
               name="default_content_processing_engine_doc"
               control={control}
@@ -109,12 +109,12 @@ export function SettingsForm() {
                   disabled={field.disabled || isLoading}
                 >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select document processing engine" />
+                      <SelectValue placeholder="选择文档处理引擎" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="auto">Auto (Recommended)</SelectItem>
+                      <SelectItem value="auto">自动 (推荐)</SelectItem>
                       <SelectItem value="docling">Docling</SelectItem>
-                      <SelectItem value="simple">Simple</SelectItem>
+                      <SelectItem value="simple">简单</SelectItem>
                     </SelectContent>
                   </Select>
               )}
@@ -122,18 +122,18 @@ export function SettingsForm() {
             <Collapsible open={expandedSections.doc} onOpenChange={() => toggleSection('doc')}>
               <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ChevronDownIcon className={`h-4 w-4 transition-transform ${expandedSections.doc ? 'rotate-180' : ''}`} />
-                Help me choose
+                帮我选择
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-2 text-sm text-muted-foreground space-y-2">
-                <p>• <strong>Docling</strong> is a little slower but more accurate, specially if the documents contain tables and images.</p>
-                <p>• <strong>Simple</strong> will extract any content from the document without formatting it. It&apos;s ok for simple documents, but will lose quality in complex ones.</p>
-                <p>• <strong>Auto (recommended)</strong> will try to process through docling and default to simple.</p>
+                <p>• <strong>Docling</strong> 稍慢，但更准确，特别是如果文档包含表格和图像。</p>
+                <p>• <strong>简单</strong> 将提取文档中的任何内容而不进行格式化。对于简单文档来说没问题，但在复杂文档中会损失质量。</p>
+                <p>• <strong>自动 (推荐)</strong> 将尝试通过 Docling 处理，并默认回退到简单。</p>
               </CollapsibleContent>
             </Collapsible>
           </div>
           
           <div className="space-y-3">
-            <Label htmlFor="url_engine">URL Processing Engine</Label>
+            <Label htmlFor="url_engine">URL 处理引擎</Label>
             <Controller
               name="default_content_processing_engine_url"
               control={control}
@@ -145,13 +145,13 @@ export function SettingsForm() {
                   disabled={field.disabled || isLoading}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select URL processing engine" />
+                    <SelectValue placeholder="选择 URL 处理引擎" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="auto">Auto (Recommended)</SelectItem>
+                    <SelectItem value="auto">自动 (推荐)</SelectItem>
                     <SelectItem value="firecrawl">Firecrawl</SelectItem>
                     <SelectItem value="jina">Jina</SelectItem>
-                    <SelectItem value="simple">Simple</SelectItem>
+                    <SelectItem value="simple">简单</SelectItem>
                   </SelectContent>
                 </Select>
               )}
@@ -159,13 +159,13 @@ export function SettingsForm() {
             <Collapsible open={expandedSections.url} onOpenChange={() => toggleSection('url')}>
               <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ChevronDownIcon className={`h-4 w-4 transition-transform ${expandedSections.url ? 'rotate-180' : ''}`} />
-                Help me choose
+                帮我选择
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-2 text-sm text-muted-foreground space-y-2">
-                <p>• <strong>Firecrawl</strong> is a paid service (with a free tier), and very powerful.</p>
-                <p>• <strong>Jina</strong> is a good option as well and also has a free tier.</p>
-                <p>• <strong>Simple</strong> will use basic HTTP extraction and will miss content on javascript-based websites.</p>
-                <p>• <strong>Auto (recommended)</strong> will try to use firecrawl (if API Key is present). Then, it will use Jina until reaches the limit (or will keep using Jina if you setup the API Key). It will fallback to simple, when none of the previous options is possible.</p>
+                <p>• <strong>Firecrawl</strong> 是一项付费服务（有免费层级），且功能非常强大。</p>
+                <p>• <strong>Jina</strong> 也是一个不错的选择，同样有免费层级。</p>
+                <p>• <strong>简单</strong> 将使用基础的 HTTP 提取，在基于 JavaScript 的网站上会丢失内容。</p>
+                <p>• <strong>自动 (推荐)</strong> 将尝试使用 Firecrawl（如果提供 API 密钥）。然后，它将使用 Jina 直到达到限制（或者如果您设置了 API 密钥，它将继续使用 Jina）。当上述选项都不可用时，它将回退到简单。</p>
               </CollapsibleContent>
             </Collapsible>
           </div>
@@ -174,14 +174,14 @@ export function SettingsForm() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Embedding and Search</CardTitle>
+          <CardTitle>嵌入与搜索</CardTitle>
           <CardDescription>
-            Configure search and embedding options
+            配置搜索和嵌入选项
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            <Label htmlFor="embedding">Default Embedding Option</Label>
+            <Label htmlFor="embedding">默认嵌入选项</Label>
             <Controller
               name="default_embedding_option"
               control={control}
@@ -193,12 +193,12 @@ export function SettingsForm() {
                   disabled={field.disabled || isLoading}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select embedding option" />
+                    <SelectValue placeholder="选择嵌入选项" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ask">Ask</SelectItem>
-                    <SelectItem value="always">Always</SelectItem>
-                    <SelectItem value="never">Never</SelectItem>
+                    <SelectItem value="ask">询问</SelectItem>
+                    <SelectItem value="always">总是</SelectItem>
+                    <SelectItem value="never">从不</SelectItem>
                   </SelectContent>
                 </Select>
               )}
@@ -206,14 +206,14 @@ export function SettingsForm() {
             <Collapsible open={expandedSections.embedding} onOpenChange={() => toggleSection('embedding')}>
               <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ChevronDownIcon className={`h-4 w-4 transition-transform ${expandedSections.embedding ? 'rotate-180' : ''}`} />
-                Help me choose
+                帮我选择
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-2 text-sm text-muted-foreground space-y-2">
-                <p>Embedding the content will make it easier to find by you and by your AI agents. If you are running a local embedding model (Ollama, for example), you shouldn&apos;t worry about cost and just embed everything. For online providers, you might want to be careful only if you process a lot of content (like 100s of documents at a day).</p>
-                <p>• Choose <strong>always</strong> if you are running a local embedding model or if your content volume is not that big</p>
-                <p>• Choose <strong>ask</strong> if you want to decide every time</p>
-                <p>• Choose <strong>never</strong> if you don&apos;t care about vector search or do not have an embedding provider.</p>
-                <p>As a reference, OpenAI&apos;s text-embedding-3-small costs about 0.02 for 1 million tokens -- which is about 30 times the Wikipedia page for Earth. With Gemini API, Text Embedding 004 is free with a rate limit of 1500 requests per minute.</p>
+                <p>对内容进行嵌入将使您和您的 AI 代理更容易找到它。如果您正在运行本地嵌入模型（例如 Ollama），您无需担心成本，只需嵌入所有内容即可。对于在线提供商，仅当您处理大量内容（例如每天数百份文档）时，才需要谨慎处理。</p>
+                <p>• 如果您正在运行本地嵌入模型，或者您的内容量不是很大，请选择<strong>总是</strong></p>
+                <p>• 如果您想每次都自行决定，请选择<strong>询问</strong></p>
+                <p>• 如果您不在乎向量搜索或者没有嵌入提供商，请选择<strong>从不</strong>。</p>
+                <p>作为参考，OpenAI 的 text-embedding-3-small 每 100 万个 token 的成本约为 0.02 美元——这大约是地球维基百科页面的 30 倍。使用 Gemini API，Text Embedding 004 是免费的，速率限制为每分钟 1500 个请求。</p>
               </CollapsibleContent>
             </Collapsible>
           </div>
@@ -222,14 +222,14 @@ export function SettingsForm() {
 
       <Card>
         <CardHeader>
-          <CardTitle>File Management</CardTitle>
+          <CardTitle>文件管理</CardTitle>
           <CardDescription>
-            Configure file handling and storage options
+            配置文件处理和存储选项
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            <Label htmlFor="auto_delete">Auto Delete Files</Label>
+            <Label htmlFor="auto_delete">自动删除文件</Label>
             <Controller
               name="auto_delete_files"
               control={control}
@@ -241,11 +241,11 @@ export function SettingsForm() {
                   disabled={field.disabled || isLoading}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select auto delete option" />
+                    <SelectValue placeholder="选择自动删除选项" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="yes">Yes</SelectItem>
-                    <SelectItem value="no">No</SelectItem>
+                    <SelectItem value="yes">是</SelectItem>
+                    <SelectItem value="no">否</SelectItem>
                   </SelectContent>
                 </Select>
               )}
@@ -253,12 +253,12 @@ export function SettingsForm() {
             <Collapsible open={expandedSections.files} onOpenChange={() => toggleSection('files')}>
               <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ChevronDownIcon className={`h-4 w-4 transition-transform ${expandedSections.files ? 'rotate-180' : ''}`} />
-                Help me choose
+                帮我选择
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-2 text-sm text-muted-foreground space-y-2">
-                <p>Once your files are uploaded and processed, they are not required anymore. Most users should allow Open Notebook to delete uploaded files from the upload folder automatically. Choose <strong>no</strong>, ONLY if you are using Notebook as the primary storage location for those files (which you shouldn&apos;t be at all). This option will soon be deprecated in favor of always downloading the files.</p>
-                <p>• Choose <strong>yes</strong> (recommended) to automatically delete uploaded files after processing</p>
-                <p>• Choose <strong>no</strong> only if you need to keep the original files in the upload folder</p>
+                <p>一旦您的文件上传并处理完毕，就不再需要它们了。大多数用户应允许 Open Notebook 自动从上传文件夹中删除上传的文件。只有在您将笔记本作为这些文件的主要存储位置时才选择<strong>否</strong>（您根本不应该这样做）。此选项很快将被弃用，转而采用始终下载文件的方式。</p>
+                <p>• 选择<strong>是</strong>（推荐）以在处理后自动删除上传的文件</p>
+                <p>• 仅当您需要保留上传文件夹中的原始文件时，才选择<strong>否</strong></p>
               </CollapsibleContent>
             </Collapsible>
           </div>
@@ -270,7 +270,7 @@ export function SettingsForm() {
           type="submit" 
           disabled={!isDirty || updateSettings.isPending}
         >
-          {updateSettings.isPending ? 'Saving...' : 'Save Settings'}
+          {updateSettings.isPending ? '正在保存...' : '保存设置'}
         </Button>
       </div>
     </form>

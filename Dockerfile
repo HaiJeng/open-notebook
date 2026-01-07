@@ -56,7 +56,9 @@ EXPOSE 8502 5055
 # Fix line endings for scripts (in case they were created on Windows)
 RUN mkdir -p /app/data /var/log/supervisor && \
     sed -i 's/\r$//' /app/scripts/wait-for-api.sh && \
-    chmod +x /app/scripts/wait-for-api.sh
+    sed -i 's/\r$//' /app/supervisord.conf && \
+    chmod +x /app/scripts/wait-for-api.sh && \
+    chmod +x /app/scripts/*.sh
 
 COPY --from=builder /app/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 

@@ -64,17 +64,17 @@ export function SpeakerProfilesPanel({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold">Speaker profiles</h2>
+          <h2 className="text-lg font-semibold">演讲者配置</h2>
           <p className="text-sm text-muted-foreground">
-            Configure voices and personalities for generated episodes.
+            为生成的剧集配置声音和性格。
           </p>
         </div>
-        <Button onClick={() => setCreateOpen(true)}>Create speaker</Button>
+        <Button onClick={() => setCreateOpen(true)}>创建演讲者</Button>
       </div>
 
       {sortedProfiles.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-muted/30 p-8 text-center text-sm text-muted-foreground">
-          No speaker profiles yet. Create one to make episode templates available.
+          暂无演讲者配置。创建一个以使剧集模板可用。
         </div>
       ) : (
         <div className="space-y-4">
@@ -91,7 +91,7 @@ export function SpeakerProfilesPanel({
                         {profile.name}
                       </CardTitle>
                       <CardDescription className="text-sm text-muted-foreground">
-                        {profile.description || 'No description provided.'}
+                        {profile.description || '暂无描述。'}
                       </CardDescription>
                     </div>
                     <Badge variant="outline" className="text-xs">
@@ -104,8 +104,8 @@ export function SpeakerProfilesPanel({
                       className="text-xs"
                     >
                       {usageCount > 0
-                        ? `Used by ${usageCount} episode${usageCount === 1 ? '' : 's'}`
-                        : 'Unused'}
+                        ? `被 ${usageCount} 个剧集使用`
+                        : '未使用'}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -125,14 +125,14 @@ export function SpeakerProfilesPanel({
                             </span>
                           </div>
                           <span className="text-xs text-muted-foreground">
-                            Voice ID: {speaker.voice_id}
+                            声音 ID: {speaker.voice_id}
                           </span>
                         </div>
                         <p className="mt-2 text-xs text-muted-foreground whitespace-pre-wrap">
-                          <span className="font-semibold">Backstory:</span> {speaker.backstory}
+                          <span className="font-semibold">背景故事:</span> {speaker.backstory}
                         </p>
                         <p className="mt-2 text-xs text-muted-foreground whitespace-pre-wrap">
-                          <span className="font-semibold">Personality:</span> {speaker.personality}
+                          <span className="font-semibold">性格特征:</span> {speaker.personality}
                         </p>
                       </div>
                     ))}
@@ -144,7 +144,7 @@ export function SpeakerProfilesPanel({
                       size="sm"
                       onClick={() => setEditProfile(profile)}
                     >
-                      <Edit3 className="mr-2 h-4 w-4" /> Edit
+                      <Edit3 className="mr-2 h-4 w-4" /> 编辑
                     </Button>
                     <AlertDialog>
                       <DropdownMenu>
@@ -168,7 +168,7 @@ export function SpeakerProfilesPanel({
                             disabled={duplicateProfile.isPending}
                           >
                             <Copy className="h-4 w-4 mr-2" />
-                            Duplicate
+                            复制
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <AlertDialogTrigger asChild>
@@ -177,30 +177,30 @@ export function SpeakerProfilesPanel({
                               disabled={deleteDisabled}
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
+                              删除
                             </DropdownMenuItem>
                           </AlertDialogTrigger>
                         </DropdownMenuContent>
                       </DropdownMenu>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Delete speaker profile?</AlertDialogTitle>
+                          <AlertDialogTitle>删除演讲者配置？</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Deleting “{profile.name}” cannot be undone.
+                            删除“{profile.name}”的操作无法撤销。
                           </AlertDialogDescription>
                           {deleteDisabled ? (
                             <p className="mt-2 text-sm text-muted-foreground">
-                              Remove this speaker from episode profiles before deleting it.
+                              在删除之前，请先将此演讲者从剧集配置中移除。
                             </p>
                           ) : null}
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogCancel>取消</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() => deleteProfile.mutate(profile.id)}
                             disabled={deleteDisabled || deleteProfile.isPending}
                           >
-                            {deleteProfile.isPending ? 'Deleting…' : 'Delete'}
+                            {deleteProfile.isPending ? '删除中…' : '删除'}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>

@@ -51,7 +51,7 @@ const createSourceSchema = z.object({
   }
   return true
 }, {
-  message: 'Please provide the required content for the selected source type',
+  message: '请为所选资源类型提供所需的内容',
   path: ['type'],
 }).refine((data) => {
   // Make title mandatory for text sources
@@ -60,7 +60,7 @@ const createSourceSchema = z.object({
   }
   return true
 }, {
-  message: 'Title is required for text sources',
+  message: '文本资源必须有标题',
   path: ['title'],
 })
 
@@ -73,9 +73,9 @@ interface AddSourceDialogProps {
 }
 
 const WIZARD_STEPS: readonly WizardStep[] = [
-  { number: 1, title: 'Source & Content', description: 'Choose type and add content' },
-  { number: 2, title: 'Organization', description: 'Select notebooks' },
-  { number: 3, title: 'Processing', description: 'Choose transformations and options' },
+  { number: 1, title: '资源与内容', description: '选择类型并添加内容' },
+  { number: 2, title: '组织', description: '选择笔记本' },
+  { number: 3, title: '处理', description: '选择转换和选项' },
 ]
 
 interface ProcessingState {
@@ -385,29 +385,29 @@ export function AddSourceDialog({
 
       if (isBatchMode) {
         // Batch submission
-        setProcessingStatus({ message: `Processing ${itemCount} sources...` })
+        setProcessingStatus({ message: `正在处理 ${itemCount} 个资源...` })
         const results = await submitBatch(data)
-
+       
         // Show summary toast
         if (results.failed === 0) {
-          toast.success(`${results.success} source${results.success !== 1 ? 's' : ''} created successfully`)
+          toast.success(`成功创建了 ${results.success} 个资源`)
         } else if (results.success === 0) {
-          toast.error(`Failed to create all ${results.failed} sources`)
+          toast.error(`创建所有 ${results.failed} 个资源失败`)
         } else {
-          toast.warning(`${results.success} succeeded, ${results.failed} failed`)
+          toast.warning(`${results.success} 个成功，${results.failed} 个失败`)
         }
 
         handleClose()
       } else {
         // Single source submission
-        setProcessingStatus({ message: 'Submitting source for processing...' })
+        setProcessingStatus({ message: '正在提交资源进行处理...' })
         await submitSingleSource(data)
         handleClose()
       }
     } catch (error) {
       console.error('Error creating source:', error)
       setProcessingStatus({
-        message: 'Error creating source. Please try again.',
+        message: '创建资源时出错。请重试。',
       })
       timeoutRef.current = setTimeout(() => {
         setProcessing(false)
@@ -457,21 +457,21 @@ export function AddSourceDialog({
         <DialogContent className="sm:max-w-[500px]" showCloseButton={true}>
           <DialogHeader>
             <DialogTitle>
-              {batchProgress ? 'Processing Batch' : 'Processing Source'}
+              {batchProgress ? '正在批量处理' : '正在处理资源'}
             </DialogTitle>
             <DialogDescription>
               {batchProgress
-                ? `Processing ${batchProgress.total} sources. This may take a few moments.`
-                : 'Your source is being processed. This may take a few moments.'
+                ? `正在处理 ${batchProgress.total} 个资源。这可能需要一些时间。`
+                : '您的资源正在处理中。这可能需要一些时间。'
               }
             </DialogDescription>
           </DialogHeader>
-
+           
           <div className="space-y-4 py-4">
             <div className="flex items-center gap-3">
               <LoaderIcon className="h-5 w-5 animate-spin text-primary" />
               <span className="text-sm text-muted-foreground">
-                {processingStatus?.message || 'Processing...'}
+                {processingStatus?.message || '处理中...'}
               </span>
             </div>
 
@@ -489,12 +489,12 @@ export function AddSourceDialog({
                   <div className="flex items-center gap-4">
                     <span className="flex items-center gap-1.5 text-green-600">
                       <CheckCircleIcon className="h-4 w-4" />
-                      {batchProgress.completed} completed
+                      {batchProgress.completed} 已完成
                     </span>
                     {batchProgress.failed > 0 && (
                       <span className="flex items-center gap-1.5 text-destructive">
                         <XCircleIcon className="h-4 w-4" />
-                        {batchProgress.failed} failed
+                        {batchProgress.failed} 已失败
                       </span>
                     )}
                   </div>
@@ -505,7 +505,7 @@ export function AddSourceDialog({
 
                 {batchProgress.currentItem && (
                   <p className="text-xs text-muted-foreground truncate">
-                    Current: {batchProgress.currentItem}
+                    当前：{batchProgress.currentItem}
                   </p>
                 )}
               </>
@@ -532,9 +532,9 @@ export function AddSourceDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[700px] p-0">
         <DialogHeader className="px-6 pt-6 pb-0">
-          <DialogTitle>Add New Source</DialogTitle>
+          <DialogTitle>添加新资源</DialogTitle>
           <DialogDescription>
-            Add content from links, uploads, or text to your notebooks.
+            从链接、上传或文本向您的笔记本添加内容。
           </DialogDescription>
         </DialogHeader>
 
@@ -586,9 +586,9 @@ export function AddSourceDialog({
               variant="outline" 
               onClick={handleClose}
             >
-              Cancel
+              取消
             </Button>
-
+             
             <div className="flex gap-2">
               {currentStep > 1 && (
                 <Button
@@ -596,10 +596,10 @@ export function AddSourceDialog({
                   variant="outline"
                   onClick={handlePrevStep}
                 >
-                  Back
+                  上一步
                 </Button>
               )}
-
+             
               {/* Show Next button on steps 1 and 2, styled as outline/secondary */}
               {currentStep < 3 && (
                 <Button
@@ -608,17 +608,17 @@ export function AddSourceDialog({
                   onClick={(e) => handleNextStep(e)}
                   disabled={!currentStepValid}
                 >
-                  Next
+                  下一步
                 </Button>
               )}
-
+             
               {/* Show Done button on all steps, styled as primary */}
               <Button
                 type="submit"
                 disabled={!currentStepValid || createSource.isPending}
                 className="min-w-[120px]"
               >
-                {createSource.isPending ? 'Creating...' : 'Done'}
+                {createSource.isPending ? '正在创建...' : '完成'}
               </Button>
             </div>
           </div>

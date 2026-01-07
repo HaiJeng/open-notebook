@@ -104,7 +104,7 @@ export function SessionManager({
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5" />
-              Chat Sessions
+              对话会话
             </span>
             <Button
               size="sm"
@@ -122,7 +122,7 @@ export function SessionManager({
                 <Input
                   value={newSessionTitle}
                   onChange={(e) => setNewSessionTitle(e.target.value)}
-                  placeholder="Session title..."
+                  placeholder="会话标题..."
                   className="mb-2"
                   autoFocus
                   onKeyPress={(e) => {
@@ -131,7 +131,7 @@ export function SessionManager({
                 />
                 <div className="flex gap-2">
                   <Button size="sm" onClick={handleCreateSession}>
-                    Create
+                    创建
                   </Button>
                   <Button
                     size="sm"
@@ -141,7 +141,7 @@ export function SessionManager({
                       setNewSessionTitle('')
                     }}
                   >
-                    Cancel
+                    取消
                   </Button>
                 </div>
               </div>
@@ -149,13 +149,13 @@ export function SessionManager({
 
             {loadingSessions ? (
               <div className="text-center py-8 text-muted-foreground">
-                Loading sessions...
+                正在加载会话...
               </div>
             ) : sessions.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-sm">No chat sessions yet</p>
-                <p className="text-xs mt-2">Create a session to start chatting</p>
+                <p className="text-sm">暂无对话会话</p>
+                <p className="text-xs mt-2">创建一个会话以开始聊天</p>
               </div>
             ) : (
               <div className="space-y-2 pb-4">
@@ -224,7 +224,7 @@ export function SessionManager({
                         </div>
                         {session.message_count != null && session.message_count > 0 && (
                           <Badge variant="secondary" className="mt-2 text-xs">
-                            {session.message_count} messages
+                            {session.message_count} 条消息
                           </Badge>
                         )}
                         {session.model_override && (
@@ -245,15 +245,15 @@ export function SessionManager({
       <AlertDialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Chat Session?</AlertDialogTitle>
+            <AlertDialogTitle>删除对话会话？</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. All messages in this session will be permanently deleted.
+              此操作无法撤销。此会话中的所有消息将被永久删除。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm}>
-              Delete
+              删除
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

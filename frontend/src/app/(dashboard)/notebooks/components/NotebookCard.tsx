@@ -59,7 +59,7 @@ export function NotebookCard({ notebook }: NotebookCardProps) {
                 </CardTitle>
                 {notebook.archived && (
                   <Badge variant="secondary" className="mt-1">
-                    Archived
+                    已归档
                   </Badge>
                 )}
               </div>
@@ -80,12 +80,12 @@ export function NotebookCard({ notebook }: NotebookCardProps) {
                     {notebook.archived ? (
                       <>
                         <ArchiveRestore className="h-4 w-4 mr-2" />
-                        Unarchive
+                        取消归档
                       </>
                     ) : (
                       <>
                         <Archive className="h-4 w-4 mr-2" />
-                        Archive
+                        归档
                       </>
                     )}
                   </DropdownMenuItem>
@@ -97,7 +97,7 @@ export function NotebookCard({ notebook }: NotebookCardProps) {
                     className="text-red-600"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
+                    删除
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -106,11 +106,11 @@ export function NotebookCard({ notebook }: NotebookCardProps) {
           
           <CardContent>
             <CardDescription className="line-clamp-2 text-sm">
-              {notebook.description || 'No description'}
+              {notebook.description || '无描述'}
             </CardDescription>
 
             <div className="mt-3 text-xs text-muted-foreground">
-              Updated {formatDistanceToNow(new Date(notebook.updated), { addSuffix: true })}
+              更新于 {formatDistanceToNow(new Date(notebook.updated), { addSuffix: true })}
             </div>
 
             {/* Item counts footer */}
@@ -130,9 +130,9 @@ export function NotebookCard({ notebook }: NotebookCardProps) {
       <ConfirmDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
-        title="Delete Notebook"
-        description={`Are you sure you want to delete "${notebook.name}"? This action cannot be undone and will delete all sources, notes, and chat sessions.`}
-        confirmText="Delete"
+        title="删除笔记本"
+        description={`您确定要删除“${notebook.name}”吗？此操作无法撤销，并将删除所有资源、笔记和对话会话。`}
+        confirmText="删除"
         confirmVariant="destructive"
         onConfirm={handleDelete}
       />

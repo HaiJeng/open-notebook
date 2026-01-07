@@ -69,7 +69,7 @@ export function ChatPanel({
   onDeleteSession,
   onUpdateSession,
   loadingSessions = false,
-  title = 'Chat with Source',
+  title = '与资源对话',
   contextType = 'source',
   notebookContextStats,
   notebookId
@@ -89,8 +89,8 @@ export function ChatPanel({
       // The modal component itself will handle displaying "not found" states.
       // This try-catch is here for future enhancements or unexpected errors.
     } catch {
-      const typeLabel = type === 'source_insight' ? 'insight' : type
-      toast.error(`This ${typeLabel} could not be found`)
+      const typeLabel = type === 'source_insight' ? '见解' : (type === 'source' ? '资源' : '笔记')
+      toast.error(`找不到该${typeLabel}`)
     }
   }
 
@@ -140,10 +140,10 @@ export function ChatPanel({
                 disabled={loadingSessions}
               >
                 <Clock className="h-4 w-4" />
-                <span className="text-xs">Sessions</span>
+                <span className="text-xs">会话</span>
               </Button>
               <DialogContent className="sm:max-w-[420px] p-0 overflow-hidden">
-                <DialogTitle className="sr-only">Chat Sessions</DialogTitle>
+                <DialogTitle className="sr-only">对话会话</DialogTitle>
                 <SessionManager
                   sessions={sessions}
                   currentSessionId={currentSessionId ?? null}
@@ -168,9 +168,9 @@ export function ChatPanel({
               <div className="text-center text-muted-foreground py-8">
                 <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p className="text-sm">
-                  Start a conversation about this {contextType}
+                  开始关于此${contextType === 'source' ? '资源' : '笔记本'}的对话
                 </p>
-                <p className="text-xs mt-2">Ask questions to understand the content better</p>
+                <p className="text-xs mt-2">通过提问更好地理解内容</p>
               </div>
             ) : (
               messages.map((message) => (
@@ -244,19 +244,19 @@ export function ChatPanel({
               {contextIndicators.sources?.length > 0 && (
                 <Badge variant="outline" className="gap-1">
                   <FileText className="h-3 w-3" />
-                  {contextIndicators.sources.length} source{contextIndicators.sources.length > 1 ? 's' : ''}
+                  {contextIndicators.sources.length} 个资源
                 </Badge>
               )}
               {contextIndicators.insights?.length > 0 && (
                 <Badge variant="outline" className="gap-1">
                   <Lightbulb className="h-3 w-3" />
-                  {contextIndicators.insights.length} insight{contextIndicators.insights.length > 1 ? 's' : ''}
+                  {contextIndicators.insights.length} 个见解
                 </Badge>
               )}
               {contextIndicators.notes?.length > 0 && (
                 <Badge variant="outline" className="gap-1">
                   <StickyNote className="h-3 w-3" />
-                  {contextIndicators.notes.length} note{contextIndicators.notes.length > 1 ? 's' : ''}
+                  {contextIndicators.notes.length} 条笔记
                 </Badge>
               )}
             </div>
@@ -279,7 +279,7 @@ export function ChatPanel({
           {/* Model selector */}
           {onModelChange && (
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Model</span>
+              <span className="text-xs text-muted-foreground">模型</span>
               <ModelSelector
                 currentModel={modelOverride}
                 onModelChange={onModelChange}
@@ -293,7 +293,7 @@ export function ChatPanel({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={`Ask a question about this ${contextType}... (${keyHint} to send)`}
+              placeholder={`询问关于此${contextType === 'source' ? '资源' : '笔记本'}的问题... (${keyHint} 发送)`}
               disabled={isStreaming}
               className="flex-1 min-h-[40px] max-h-[100px] resize-none py-2 px-3"
               rows={1}
