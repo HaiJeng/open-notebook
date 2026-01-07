@@ -1,99 +1,63 @@
 # Build stage
-FROM python:3.12-slim-bookworm AS builder
-
-# Install uv using the official method
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
-
-# Install system dependencies required for building certain Python packages
-# Add Node.js 20.x LTS for building frontend
-RUN apt-get update && apt-get upgrade -y && apt-get install -y \
-    gcc g++ git make \
-    curl \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/*
+# Use custom base image with all dependencies pre-installed
+# To build base image: docker build -f Dockerfile.base -t library/open-notebook-base:latest .
+FROM library/open-notebook-base:latest AS builder
 
 # Set build optimization environment variables
-ENV MAKEFLAGS="-j$(nproc)"
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
 
-# Set the working directory in the container to /app
 WORKDIR /app
 
-# Copy dependency files and minimal package structure first for better layer caching
+# Copy dependency files for Python
 COPY pyproject.toml uv.lock ./
 COPY open_notebook/__init__.py ./open_notebook/__init__.py
 
-# Install dependencies with optimizations (this layer will be cached unless dependencies change)
-RUN uv sync --frozen --no-dev
+# Install Python dependencies with cache mount
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
+
+# Copy frontend package files
+COPY frontend/package*.json ./frontend/
+
+# Install frontend dependencies with cache mount
+WORKDIR /app/frontend
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 
 # Copy the rest of the application code
+WORKDIR /app
 COPY . /app
 
-# Install frontend dependencies and build
+# Build frontend
 WORKDIR /app/frontend
-RUN npm ci
 RUN npm run build
 
-# Return to app root
 WORKDIR /app
 
 # Runtime stage
-FROM python:3.12-slim-bookworm AS runtime
+# Use the same base image for runtime
+FROM library/open-notebook-base:latest AS runtime
 
-# Install only runtime system dependencies (no build tools)
-# Add Node.js 20.x LTS for running frontend
-RUN apt-get update && apt-get upgrade -y && apt-get install -y \
-    ffmpeg \
-    supervisor \
-    curl \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/*
 
-# Install uv using the official method
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Set the working directory in the container to /app
 WORKDIR /app
 
-# Copy the virtual environment from builder stage
+# Copy from builder
 COPY --from=builder /app/.venv /app/.venv
-
-# Copy the application code
 COPY --from=builder /app /app
-
-# Copy built frontend from builder stage
 COPY --from=builder /app/frontend/.next/standalone /app/frontend/
 COPY --from=builder /app/frontend/.next/static /app/frontend/.next/static
 COPY --from=builder /app/frontend/public /app/frontend/public
 
-# Expose ports for Frontend and API
 EXPOSE 8502 5055
 
-RUN mkdir -p /app/data
+# Create directories and set permissions
+# Fix line endings for scripts (in case they were created on Windows)
+RUN mkdir -p /app/data /var/log/supervisor && \
+    sed -i 's/\r$//' /app/scripts/wait-for-api.sh && \
+    chmod +x /app/scripts/wait-for-api.sh
 
-# Copy and make executable the wait-for-api script
-COPY scripts/wait-for-api.sh /app/scripts/wait-for-api.sh
-RUN chmod +x /app/scripts/wait-for-api.sh
-
-# Copy supervisord configuration
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-# Create log directories
-RUN mkdir -p /var/log/supervisor
-
-# Runtime API URL Configuration
-# The API_URL environment variable can be set at container runtime to configure
-# where the frontend should connect to the API. This allows the same Docker image
-# to work in different deployment scenarios without rebuilding.
-#
-# If not set, the system will auto-detect based on incoming requests.
-# Set API_URL when using reverse proxies or custom domains.
-#
-# Example: docker run -e API_URL=https://your-domain.com/api ...
+COPY --from=builder /app/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

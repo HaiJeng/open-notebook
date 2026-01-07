@@ -58,9 +58,9 @@ export function TemplatesTab() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold">Templates workspace</h2>
+        <h2 className="text-xl font-semibold">模板工作区</h2>
         <p className="text-sm text-muted-foreground">
-          Build reusable episode and speaker configurations for fast podcast production.
+          构建可重用的剧集和演讲者配置，以快速制作播客。
         </p>
       </div>
 
@@ -72,44 +72,42 @@ export function TemplatesTab() {
           <AccordionTrigger className="gap-2 py-4 text-left text-sm font-semibold">
             <div className="flex items-center gap-2">
               <Lightbulb className="h-4 w-4 text-primary" />
-              How templates power podcast generation
+              模板如何驱动播客生成
             </div>
           </AccordionTrigger>
           <AccordionContent className="text-sm text-muted-foreground">
             <div className="space-y-4">
               <p className="text-muted-foreground/90">
-                Templates split the podcast workflow into two reusable building blocks. Mix and match
-                them whenever you generate a new episode.
+                模板将播客工作流程分为两个可重用的构建块。在生成新剧集时可以混合和匹配它们。
               </p>
 
               <div className="space-y-2">
-                <h4 className="font-medium text-foreground">Episode profiles set the format</h4>
+                <h4 className="font-medium text-foreground">剧集模板设置格式</h4>
                 <ul className="list-disc space-y-1 pl-5">
-                  <li>Outline the number of segments and how the story flows</li>
-                  <li>Pick the language models used for briefing, outlining, and script writing</li>
-                  <li>Store default briefings so every episode starts with a consistent tone</li>
+                  <li>概述段落数量和故事流程</li>
+                  <li>选择用于简报、大纲和脚本编写的语言模型</li>
+                  <li>存储默认简报，以便每集都以一致的语气开始</li>
                 </ul>
               </div>
 
               <div className="space-y-2">
-                <h4 className="font-medium text-foreground">Speaker profiles bring voices to life</h4>
+                <h4 className="font-medium text-foreground">演讲者模板赋予声音生命</h4>
                 <ul className="list-disc space-y-1 pl-5">
-                  <li>Choose the text-to-speech provider and model</li>
-                  <li>Capture personality, backstory, and pronunciation notes per speaker</li>
-                  <li>Reuse the same host or guest voices across different episode formats</li>
+                  <li>选择文本转语音提供商和模型</li>
+                  <li>捕捉每个演讲者的个性、背景故事和发音注释</li>
+                  <li>在不同的剧集格式中重用相同的主持人或嘉宾声音</li>
                 </ul>
               </div>
 
               <div className="space-y-2">
-                <h4 className="font-medium text-foreground">Recommended workflow</h4>
+                <h4 className="font-medium text-foreground">推荐的工作流程</h4>
                 <ol className="list-decimal space-y-1 pl-5">
-                  <li>Create speaker profiles for each voice you need</li>
-                  <li>Build episode profiles that reference those speakers by name</li>
-                  <li>Generate podcasts by selecting the episode profile that fits the story</li>
+                  <li>为所需的每个声音创建演讲者模板</li>
+                  <li>构建引用这些演讲者名称的剧集模板</li>
+                  <li>通过选择适合故事的剧集模板来生成播客</li>
                 </ol>
                 <p className="text-xs text-muted-foreground/80">
-                  Episode profiles reference speaker profiles by name, so starting with speakers avoids
-                  missing voice assignments later.
+                  剧集模板通过名称引用演讲者模板，因此从演讲者开始可以避免后续缺少声音分配。
                 </p>
               </div>
             </div>
@@ -120,9 +118,9 @@ export function TemplatesTab() {
       {hasError ? (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Failed to load templates data</AlertTitle>
+          <AlertTitle>加载模板数据失败</AlertTitle>
           <AlertDescription>
-            Ensure the API is running and try again. Some sections may be incomplete.
+            请确保 API 正在运行并重试。某些部分可能不完整。
           </AlertDescription>
         </Alert>
       ) : null}
@@ -130,7 +128,7 @@ export function TemplatesTab() {
       {isLoading ? (
         <div className="flex items-center gap-3 rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading templates…
+          加载模板中…
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">

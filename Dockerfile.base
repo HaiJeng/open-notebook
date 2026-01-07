@@ -1,0 +1,35 @@
+# Base image with all system dependencies pre-installed
+# Build once and reuse for faster subsequent builds
+FROM python:3.12-slim-bookworm
+
+# Use China mirror for faster apt downloads (comment out if not in China)
+RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list.d/debian.sources
+
+# Install all system dependencies needed for both build and runtime
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Build dependencies
+    gcc g++ git make xz-utils \
+    # Runtime dependencies
+    ffmpeg supervisor curl bash \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy and install Node.js 20.x LTS
+COPY docker-deps/node-v20.18.2-linux-x64.tar.xz /tmp/
+RUN tar -xJf /tmp/node-v20.18.2-linux-x64.tar.xz -C /usr/local --strip-components=1 \
+    && rm /tmp/node-v20.18.2-linux-x64.tar.xz \
+    && node --version \
+    && npm --version
+
+# Install uv package manager
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+RUN uv --version
+
+# Set environment variables for better performance
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV MAKEFLAGS="-j$(nproc)"
+
+# Metadata
+LABEL maintainer="open-notebook"
+LABEL description="Base image for Open Notebook with all system dependencies"
+LABEL version="1.0"
