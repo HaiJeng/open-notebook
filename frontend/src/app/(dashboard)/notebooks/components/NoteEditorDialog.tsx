@@ -118,7 +118,7 @@ export function NoteEditorDialog({ open, onOpenChange, notebookId, note }: NoteE
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className={cn(
-          "sm:max-w-3xl w-full max-h-[90vh] overflow-hidden p-0",
+          "sm:max-w-3xl w-full max-h-[90vh] overflow-y-auto p-0",
           isEditorFullscreen && "!max-w-screen !max-h-screen border-none w-screen h-screen"
       )}>
         <DialogTitle className="sr-only">

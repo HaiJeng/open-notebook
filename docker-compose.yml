@@ -1,15 +1,12 @@
 services:
   surrealdb:
     image: surrealdb/surrealdb:v2
-    command: start --user root --pass password --bind 0.0.0.0:8000 memory
-    # ports:
-    #   - "8000:8000"
+    command: start --user root --pass password --bind 0.0.0.0:8000 file:///mydata/surreal.db
+    ports:
+      - "8000:8000"
     volumes:
-      - surreal_data:/mydata
-    deploy:
-      resources:
-        limits:
-          memory: 2560M
+      - ./surrealdb_data:/mydata  # 绑定到当前目录下的子目录
+    user: "1000:1000"  # 使用当前用户的UID:GID
 
   open_notebook:
     image: library/open-notebook-cn:latest
