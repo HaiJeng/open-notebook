@@ -31,7 +31,7 @@ COPY . /app
 
 # Build frontend
 WORKDIR /app/frontend
-RUN npm run build
+RUN npm run build && rm -rf node_modules
 
 WORKDIR /app
 
@@ -43,9 +43,16 @@ FROM library/open-notebook-base:latest AS runtime
 
 WORKDIR /app
 
-# Copy from builder
+# Copy from builder - only necessary directories
+# Copy from builder - only necessary directories
 COPY --from=builder /app/.venv /app/.venv
-COPY --from=builder /app /app
+COPY --from=builder /app/api /app/api
+COPY --from=builder /app/open_notebook /app/open_notebook
+COPY --from=builder /app/prompts /app/prompts
+COPY --from=builder /app/commands /app/commands
+COPY --from=builder /app/run_api.py /app/run_api.py
+COPY --from=builder /app/scripts /app/scripts
+COPY --from=builder /app/supervisord.conf /app/supervisord.conf
 COPY --from=builder /app/frontend/.next/standalone /app/frontend/
 COPY --from=builder /app/frontend/.next/static /app/frontend/.next/static
 COPY --from=builder /app/frontend/public /app/frontend/public

@@ -62,3 +62,7 @@ Thumbs.db
 .quarentena/
 surreal_single_data/
 info/
+node_modules/
+*.tar
+*.tar.gz
+*.zip

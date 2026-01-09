@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY docker-deps/node-v20.18.2-linux-x64.tar.xz /tmp/
 RUN tar -xJf /tmp/node-v20.18.2-linux-x64.tar.xz -C /usr/local --strip-components=1 \
     && rm /tmp/node-v20.18.2-linux-x64.tar.xz \
+    && npm config set registry https://registry.npmmirror.com \
     && node --version \
     && npm --version
 
