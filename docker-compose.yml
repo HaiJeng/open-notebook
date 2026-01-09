@@ -5,7 +5,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./surrealdb_data:/mydata  # 绑定到当前目录下的子目录
+      - ./surreal_data:/mydata  # 绑定到当前目录下的子目录
     user: "1000:1000"  # 使用当前用户的UID:GID
 
   open_notebook:
@@ -23,8 +23,9 @@ services:
       - OPENAI_COMPATIBLE_BASE_URL=${OPENAI_COMPATIBLE_BASE_URL:-https://api.siliconflow.cn/v1}
       - OPENAI_COMPATIBLE_API_KEY=${OPENAI_COMPATIBLE_API_KEY}
       
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
       # Database
-      - SURREAL_URL=ws://surrealdb:8000/rpc
+      - SURREAL_URL=ws://surrealdb:8000/rpc  # Docker 内部仍用 8000
       - SURREAL_USER=root
       - SURREAL_PASSWORD=password
       - SURREAL_NAMESPACE=open_notebook

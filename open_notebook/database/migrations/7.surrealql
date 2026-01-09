@@ -54,34 +54,34 @@ insert into episode_profile
 [
             {
                 name: "tech_discussion",
-                description: "Technical discussion between 2 experts",
+                description: "两位专家之间的技术讨论",
                 speaker_config: "tech_experts",
                 outline_provider: "openai",
                 outline_model: "gpt-5-mini",
                 transcript_provider: "openai", 
                 transcript_model: "gpt-5-mini",
-                default_briefing: "Create an engaging technical discussion about the provided content. Focus on practical insights, real-world applications, and detailed explanations that would interest developers and technical professionals.",
+                default_briefing: "创建一个关于所提供内容的引人入胜的技术讨论。关注实用见解、实际应用和详细解释，以吸引开发者和技术专业人士的兴趣。",
                 num_segments: 5
             },
             {
                 name: "solo_expert",
-                description: "Single expert explaining complex topics",
+                description: "单个专家解释复杂主题",
                 speaker_config: "solo_expert",
                 outline_provider: "openai",
                 outline_model: "gpt-5-mini",
                 transcript_provider: "openai",
                 transcript_model: "gpt-5-mini", 
-                default_briefing: "Create an educational explanation of the provided content. Break down complex concepts into digestible segments, use analogies and examples, and maintain an engaging teaching style.",
+                default_briefing: "创建所提供内容的教育性解释。将复杂概念分解为易消化的段落，使用类比和示例，并保持引人入胜的教学风格。",
                 "num_segments":4            },
             {
                 name: "business_analysis",
-                description: "Business-focused analysis and discussion",
+                description: "以业务为重点的分析和讨论",
                 speaker_config: "business_panel",
                 outline_provider: "openai",
                 outline_model: "gpt-5-mini",
                 transcript_provider: "openai",
                 transcript_model: "gpt-5-mini",
-                default_briefing: "Analyze the provided content from a business perspective. Discuss market implications, strategic insights, competitive advantages, and actionable business intelligence.",
+                default_briefing: "从商业角度分析所提供的内容。讨论市场影响、战略见解、竞争优势和可行的商业智能。",
                 "num_segments":6            }
         ];
 
@@ -89,61 +89,61 @@ insert into speaker_profile
 [
             {
                 name: "tech_experts",
-                description: "Two technical experts for tech discussions",
+                description: "技术讨论的两位技术专家",
                 tts_provider: "openai",
                 tts_model: "gpt-4o-mini-tts",
                 speakers: [
                     {
-                        name: "Dr. Alex Chen",
+                        name: "陈博士",
                         voice_id: "nova",
-                        backstory: "Senior AI researcher and former tech lead at major companies. Specializes in making complex technical concepts accessible.",
-                        personality: "Analytical, clear communicator, asks probing questions to dig deeper into technical details"
+                        backstory: "资深AI研究员，曾任大公司技术主管。专注于使复杂技术概念易于理解。",
+                        personality: "分析性强，表达清晰，善于提出深入的问题以挖掘技术细节"
                     },
                     {
-                        name: "Jamie Rodriguez",
+                        name: "杰米·罗德里格斯",
                         voice_id: "alloy", 
-                        backstory: "Full-stack engineer and tech entrepreneur. Loves practical applications and real-world implementations.",
-                        personality: "Enthusiastic, practical-minded, great at explaining implementation details and trade-offs"
+                        backstory: "全栈工程师和技术创业者。热衷于实际应用和真实世界的实现。",
+                        personality: "热情洋溢，注重实践，善于解释实现细节和权衡利弊"
                     }
                 ]
             },
             {
                 name: "solo_expert",
-                description: "Single expert for educational content",
+                description: "教育内容的单个专家",
                 tts_provider: "openai",
                 tts_model: "gpt-4o-mini-tts",
                 speakers: [
                     {
-                        name: "Professor Sarah Kim",
+                        name: "金教授",
                         voice_id: "nova",
-                        backstory: "Distinguished professor and researcher. Has a gift for making complex topics accessible to broad audiences.",
-                        personality: "Patient teacher, uses analogies and examples, breaks down complex concepts step by step"
+                        backstory: "杰出的教授和研究员。具有将复杂主题传达给广泛受众的天赋。",
+                        personality: "耐心的教师，善用类比和示例，逐步分解复杂概念"
                     }
                 ]
             },
             {
                 name: "business_panel",
-                description: "Business analysis panel with diverse perspectives",
+                description: "具有多元视角的商业分析小组",
                 tts_provider: "openai", 
                 tts_model: "gpt-4o-mini-tts",
                 speakers: [
                     {
-                        name: "Marcus Thompson",
+                        name: "马库斯·汤普森",
                         voice_id: "echo",
-                        backstory: "Former McKinsey consultant, now startup advisor. Expert in strategic analysis and market dynamics.",
-                        personality: "Strategic thinker, data-driven, excellent at identifying key insights and implications"
+                        backstory: "前麦肯锡顾问，现为创业公司顾问。战略分析和市场动态专家。",
+                        personality: "战略思维者，数据驱动，善于识别关键见解和影响"
                     },
                     {
-                        name: "Elena Vasquez", 
+                        name: "埃琳娜·巴斯克斯", 
                         voice_id: "shimmer",
-                        backstory: "Serial entrepreneur and investor. Focuses on practical implementation and execution.",
-                        personality: "Action-oriented, pragmatic, brings startup experience and execution focus"
+                        backstory: "连续创业者和投资人。专注于实际实施和执行。",
+                        personality: "行动导向，务实，带来创业经验和执行力"
                     },
                     {
-                        name: "Johny Bing", 
+                        name: "约翰尼·宾", 
                         voice_id: "ash",
-                        backstory: "Youtube celebrity and business mogul. Focuses on practical implementation and execution.",
-                        personality: "Controversial, likes to question ideas and concepts. He brings a fresh perspective and always has a point to make."
+                        backstory: "YouTube名人和商业大亨。专注于实际实施和执行。",
+                        personality: "有争议性，喜欢质疑想法和概念。带来新鲜视角，总有观点要表达。"
                     }
                 ]
             }
