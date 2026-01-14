@@ -9,6 +9,8 @@ import { useUpdateNotebook, useDeleteNotebook } from '@/lib/hooks/use-notebooks'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { formatDistanceToNow } from 'date-fns'
 import { InlineEdit } from '@/components/common/InlineEdit'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { MarkdownEditor } from '@/components/ui/markdown-editor'
 
 interface NotebookHeaderProps {
   notebook: NotebookResponse
@@ -16,6 +18,8 @@ interface NotebookHeaderProps {
 
 export function NotebookHeader({ notebook }: NotebookHeaderProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showPersonaDialog, setShowPersonaDialog] = useState(false)
+  const [personaDraft, setPersonaDraft] = useState(notebook.chat_system_prompt_override || '')
   
   const updateNotebook = useUpdateNotebook()
   const deleteNotebook = useDeleteNotebook()
@@ -50,6 +54,26 @@ export function NotebookHeader({ notebook }: NotebookHeaderProps) {
     setShowDeleteDialog(false)
   }
 
+  const personaPreview = notebook.chat_system_prompt_override
+    ? notebook.chat_system_prompt_override.slice(0, 60) +
+      (notebook.chat_system_prompt_override.length > 60 ? '…' : '')
+    : '未设置（使用默认提示词）'
+
+  const handleOpenPersonaDialog = () => {
+    setPersonaDraft(notebook.chat_system_prompt_override || '')
+    setShowPersonaDialog(true)
+  }
+
+  const handleSavePersona = async () => {
+    await updateNotebook.mutateAsync({
+      id: notebook.id,
+      data: {
+        chat_system_prompt_override: personaDraft.trim() ? personaDraft : null,
+      },
+    })
+    setShowPersonaDialog(false)
+  }
+  
   return (
     <>
       <div className="border-b pb-6">
@@ -107,6 +131,17 @@ export function NotebookHeader({ notebook }: NotebookHeaderProps) {
             emptyText="添加描述..."
           />
           
+          {/* 对话人格预览 + 编辑按钮 */}
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <div className="truncate max-w-[60%]">
+              <span className="font-medium mr-2">对话人格：</span>
+              {personaPreview}
+            </div>
+            <Button variant="outline" size="sm" onClick={handleOpenPersonaDialog}>
+              编辑人格提示词
+            </Button>
+          </div>
+
           <div className="text-sm text-muted-foreground">
             创建于 {formatDistanceToNow(new Date(notebook.created), { addSuffix: true })} • 
             更新于 {formatDistanceToNow(new Date(notebook.updated), { addSuffix: true })}
@@ -123,6 +158,38 @@ export function NotebookHeader({ notebook }: NotebookHeaderProps) {
         confirmVariant="destructive"
         onConfirm={handleDelete}
       />
+      {/* 对话人格编辑弹窗 */}
+      <Dialog open={showPersonaDialog} onOpenChange={setShowPersonaDialog}>
+        <DialogContent className="sm:max-w-[720px]">
+          <DialogHeader>
+            <DialogTitle>编辑笔记本对话人格</DialogTitle>
+            <DialogDescription>
+              定义当前笔记本的对话人格、语气和行为准则。此内容会覆盖默认的系统提示词（支持 Markdown）。
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-4">
+            <MarkdownEditor
+              className="border rounded-md"
+              value={personaDraft}
+              onChange={(value) => setPersonaDraft(value || '')}
+              placeholder="例如：&#10;- 你是一位擅长 XX 的小说助手...&#10;- 回答时优先使用中文，保持温和、细致的语气..."
+              height={320}
+              preview="live"
+              hideToolbar={false}
+            />
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0 mt-4">
+            <Button variant="outline" onClick={() => setShowPersonaDialog(false)}>
+              取消
+            </Button>
+            <Button onClick={handleSavePersona} disabled={updateNotebook.isPending}>
+              {updateNotebook.isPending ? '保存中...' : '保存'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

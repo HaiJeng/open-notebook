@@ -7,6 +7,7 @@ export interface NotebookResponse {
   updated: string
   source_count: number
   note_count: number
+  chat_system_prompt_override?: string | null
 }
 
 export interface NoteResponse {
@@ -63,12 +64,14 @@ export interface SettingsResponse {
 export interface CreateNotebookRequest {
   name: string
   description?: string
+  chat_system_prompt_override?: string
 }
 
 export interface UpdateNotebookRequest {
   name?: string
   description?: string
   archived?: boolean
+  chat_system_prompt_override?: string | null
 }
 
 export interface CreateNoteRequest {

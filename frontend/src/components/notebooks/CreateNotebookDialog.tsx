@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 
@@ -18,10 +18,12 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { useCreateNotebook } from '@/lib/hooks/use-notebooks'
+import { MarkdownEditor } from '../ui/markdown-editor'
 
 const createNotebookSchema = z.object({
   name: z.string().min(1, '名称是必填项'),
   description: z.string().optional(),
+  chat_system_prompt_override: z.string().optional(),
 })
 
 type CreateNotebookFormData = z.infer<typeof createNotebookSchema>
@@ -38,12 +40,14 @@ export function CreateNotebookDialog({ open, onOpenChange }: CreateNotebookDialo
     handleSubmit,
     formState: { errors, isValid },
     reset,
+    control
   } = useForm<CreateNotebookFormData>({
     resolver: zodResolver(createNotebookSchema),
     mode: 'onChange',
     defaultValues: {
       name: '',
       description: '',
+      chat_system_prompt_override: ''
     },
   })
 
@@ -92,6 +96,24 @@ export function CreateNotebookDialog({ open, onOpenChange }: CreateNotebookDialo
               {...register('description')}
               placeholder="描述此笔记本的目的和范围..."
               rows={4}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="notebook-persona">笔记本人格</Label>
+            <Controller
+              name="chat_system_prompt_override"
+              control={control}
+              render={({ field }) => (
+                <MarkdownEditor
+                  className="border rounded-md"
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="描述此笔记本的人格提示词，例如角色、语气、行为准则等（支持 Markdown）..."
+                  height={240}
+                  preview="live" 
+                  hideToolbar={false}
+                />
+              )}
             />
           </div>
 
