@@ -18,6 +18,8 @@ class Notebook(ObjectModel):
     name: str
     description: str
     archived: Optional[bool] = False
+    # Notebook 对话人格
+    chat_system_prompt_override: Optional[str] = None
 
     @field_validator("name")
     @classmethod

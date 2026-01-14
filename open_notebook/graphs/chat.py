@@ -25,8 +25,12 @@ class ThreadState(TypedDict):
 
 
 def call_model_with_messages(state: ThreadState, config: RunnableConfig) -> dict:
-    system_prompt = Prompter(prompt_template="chat/system").render(data=state)  # type: ignore[arg-type]
-    payload = [SystemMessage(content=system_prompt)] + state.get("messages", [])
+    notebook = state["notebook"]
+    notebook_prompt = notebook.chat_system_prompt_override if notebook else None
+    system_prompt = Prompter(template_text=notebook_prompt).render(
+        data=state) if notebook_prompt else Prompter(prompt_template="chat/system").render(data=state)
+    payload = [SystemMessage(content=system_prompt)] + \
+        state.get("messages", [])
     model_id = config.get("configurable", {}).get("model_id") or state.get(
         "model_override"
     )
@@ -69,9 +73,11 @@ def call_model_with_messages(state: ThreadState, config: RunnableConfig) -> dict
     ai_message = model.invoke(payload)
 
     # Clean thinking content from AI response (e.g., <think>...</think> tags)
-    content = ai_message.content if isinstance(ai_message.content, str) else str(ai_message.content)
+    content = ai_message.content if isinstance(
+        ai_message.content, str) else str(ai_message.content)
     cleaned_content = clean_thinking_content(content)
-    cleaned_message = ai_message.model_copy(update={"content": cleaned_content})
+    cleaned_message = ai_message.model_copy(
+        update={"content": cleaned_content})
 
     return {"messages": cleaned_message}
 

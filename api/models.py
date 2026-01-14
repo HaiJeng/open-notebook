@@ -15,6 +15,9 @@ class NotebookUpdate(BaseModel):
     archived: Optional[bool] = Field(
         None, description="Whether the notebook is archived"
     )
+    chat_system_prompt_override: Optional[str] = Field(
+        None, description="Chat system prompt override for the notebook"
+    )
 
 
 class NotebookResponse(BaseModel):

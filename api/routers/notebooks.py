@@ -133,6 +133,8 @@ async def update_notebook(notebook_id: str, notebook_update: NotebookUpdate):
             notebook.description = notebook_update.description
         if notebook_update.archived is not None:
             notebook.archived = notebook_update.archived
+        if notebook_update.chat_system_prompt_override is not None:
+            notebook.chat_system_prompt_override = notebook_update.chat_system_prompt_override
 
         await notebook.save()
 

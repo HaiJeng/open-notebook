@@ -331,6 +331,11 @@ async def execute_chat(request: ExecuteChatRequest):
             if request.model_override is not None
             else getattr(session, "model_override", None)
         )
+        
+        # 获取notebbok
+        notebook = await Notebook.get(session.notebook_id)
+        if not notebook:
+            raise HTTPException(status_code=404, detail="Notebook not found")
 
         # Get current state
         current_state = chat_graph.get_state(
@@ -344,7 +349,8 @@ async def execute_chat(request: ExecuteChatRequest):
         state_values["messages"] = state_values.get("messages", [])
         state_values["context"] = request.context
         state_values["model_override"] = model_override
-
+        state_values["notebook"] = notebook
+        
         # Add user message to state
         from langchain_core.messages import HumanMessage
 
