@@ -29,7 +29,7 @@ class NotebookResponse(BaseModel):
     updated: str
     source_count: int
     note_count: int
-    chat_system_prompt_override: str
+    chat_system_prompt_override: Optional[str] = None
 
 
 # Search models

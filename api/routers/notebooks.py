@@ -45,6 +45,7 @@ async def get_notebooks(
                 updated=str(nb.get("updated", "")),
                 source_count=nb.get("source_count", 0),
                 note_count=nb.get("note_count", 0),
+                  chat_system_prompt_override=nb.get("chat_system_prompt_override", None)
             )
             for nb in result
         ]
@@ -112,7 +113,7 @@ async def get_notebook(notebook_id: str):
             source_count=nb.get("source_count", 0),
             note_count=nb.get("note_count", 0),
             chat_system_prompt_override=nb.get(
-                "chat_system_prompt_override", "")
+                "chat_system_prompt_override", None)
         )
     except HTTPException:
         raise
@@ -164,7 +165,7 @@ async def update_notebook(notebook_id: str, notebook_update: NotebookUpdate):
                 source_count=nb.get("source_count", 0),
                 note_count=nb.get("note_count", 0),
                 chat_system_prompt_override=nb.get(
-                    "chat_system_prompt_override", "")
+                    "chat_system_prompt_override", None)
             )
 
         # Fallback if query fails
