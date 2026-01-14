@@ -132,6 +132,9 @@ async def update_notebook(notebook_id: str, notebook_update: NotebookUpdate):
         if not notebook:
             raise HTTPException(status_code=404, detail="Notebook not found")
 
+        logger.info(f"[DEBUG] update_notebook received override: {notebook_update.chat_system_prompt_override!r}")
+        logger.info(f"[DEBUG] notebook before update: {notebook.chat_system_prompt_override!r}")
+
         # Update only provided fields
         if notebook_update.name is not None:
             notebook.name = notebook_update.name
@@ -141,8 +144,19 @@ async def update_notebook(notebook_id: str, notebook_update: NotebookUpdate):
             notebook.archived = notebook_update.archived
         if notebook_update.chat_system_prompt_override is not None:
             notebook.chat_system_prompt_override = notebook_update.chat_system_prompt_override
+            logger.info(f"[DEBUG] notebook after assignment: {notebook.chat_system_prompt_override!r}")
 
         await notebook.save()
+        logger.info(f"[DEBUG] notebook saved, value: {notebook.chat_system_prompt_override!r}")
+
+        # 直接查询数据库看实际存储内容
+        db_check = await repo_query(
+            "SELECT * FROM $id",
+            {"id": ensure_record_id(notebook_id)}
+        )
+        if db_check:
+            logger.info(f"[DEBUG] DB direct query keys: {list(db_check[0].keys())}")
+            logger.info(f"[DEBUG] DB direct query chat_system_prompt_override: {db_check[0].get('chat_system_prompt_override')!r}")
 
         # Query with counts after update
         query = """
@@ -155,6 +169,8 @@ async def update_notebook(notebook_id: str, notebook_update: NotebookUpdate):
 
         if result:
             nb = result[0]
+            logger.info(f"[DEBUG] query result keys: {list(nb.keys())}")
+            logger.info(f"[DEBUG] query result chat_system_prompt_override: {nb.get('chat_system_prompt_override')!r}")
             return NotebookResponse(
                 id=str(nb.get("id", "")),
                 name=nb.get("name", ""),

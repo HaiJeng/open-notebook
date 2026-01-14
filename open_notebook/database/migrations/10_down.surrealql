@@ -1,0 +1,3 @@
+-- Migration 10 Down: Remove chat_system_prompt_override field from notebook table
+
+REMOVE FIELD IF EXISTS chat_system_prompt_override ON TABLE notebook;

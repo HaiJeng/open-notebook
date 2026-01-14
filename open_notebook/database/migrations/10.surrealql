@@ -1,0 +1,4 @@
+-- Migration 10: Add chat_system_prompt_override field to notebook table
+-- 为 notebook 表添加 chat_system_prompt_override 字段，用于存储笔记本级别的对话人格提示词
+
+DEFINE FIELD IF NOT EXISTS chat_system_prompt_override ON TABLE notebook TYPE option<string>;
