@@ -77,6 +77,8 @@ export default function NotebooksPage() {
             title="活跃笔记本"
             emptyTitle={isSearching ? '没有匹配的笔记本' : undefined}
             emptyDescription={isSearching ? '请尝试使用不同的笔记本名称。' : undefined}
+            onAction={!isSearching ? () => setCreateDialogOpen(true) : undefined}
+            actionLabel={!isSearching ? "Create Notebook" : undefined}
           />
           
           {hasArchived && (

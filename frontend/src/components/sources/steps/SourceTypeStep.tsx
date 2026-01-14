@@ -222,7 +222,7 @@ export function SourceTypeStep({ control, register, errors, urlValidationErrors,
                         accept=".pdf,.doc,.docx,.pptx,.ppt,.xlsx,.xls,.txt,.md,.epub,.mp4,.avi,.mov,.wmv,.mp3,.wav,.m4a,.aac,.jpg,.jpeg,.png,.tiff,.zip,.tar,.gz,.html"
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        选择多个文件进行批量导入。支持：文档 (PDF, DOC, DOCX, PPT, XLS, EPUB, TXT, MD)、多媒体 (MP4, MP3, WAV, M4A)、图像 (JPG, PNG)、压缩包 (ZIP)
+                        选择多个文件进行批量导入。支持：文档 (PDF, DOC, DOCX, PPT, XLS, EPUB, TXT, MD)、多媒体 (MP4, MP3, WAV, M4A)、图像 (JPG, PNG)
                       </p>
                       {fileCount > 1 && fileInput instanceof FileList && (
                         <div className="mt-2 p-3 bg-muted rounded-md">
