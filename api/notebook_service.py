@@ -26,6 +26,7 @@ class NotebookService:
                 name=nb_data["name"],
                 description=nb_data["description"],
                 archived=nb_data["archived"],
+                chat_system_prompt_override=nb_data["chat_system_prompt_override"],
             )
             nb.id = nb_data["id"]
             nb.created = nb_data["created"]
@@ -41,6 +42,7 @@ class NotebookService:
             name=nb_data["name"],
             description=nb_data["description"],
             archived=nb_data["archived"],
+            chat_system_prompt_override=nb_data["chat_system_prompt_override"],
         )
         nb.id = nb_data["id"]
         nb.created = nb_data["created"]
@@ -55,6 +57,7 @@ class NotebookService:
             name=nb_data["name"],
             description=nb_data["description"],
             archived=nb_data["archived"],
+            chat_system_prompt_override=nb_data["chat_system_prompt_override"],
         )
         nb.id = nb_data["id"]
         nb.created = nb_data["created"]
@@ -76,6 +79,7 @@ class NotebookService:
         notebook.description = nb_data["description"]
         notebook.archived = nb_data["archived"]
         notebook.updated = nb_data["updated"]
+        notebook.chat_system_prompt_override = nb_data["chat_system_prompt_override"]
         return notebook
 
     def delete_notebook(self, notebook: Notebook) -> bool:

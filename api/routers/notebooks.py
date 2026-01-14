@@ -13,8 +13,10 @@ router = APIRouter()
 
 @router.get("/notebooks", response_model=List[NotebookResponse])
 async def get_notebooks(
-    archived: Optional[bool] = Query(None, description="Filter by archived status"),
-    order_by: str = Query("updated desc", description="Order by field and direction"),
+    archived: Optional[bool] = Query(
+        None, description="Filter by archived status"),
+    order_by: str = Query(
+        "updated desc", description="Order by field and direction"),
 ):
     """Get all notebooks with optional filtering and ordering."""
     try:
@@ -72,6 +74,7 @@ async def create_notebook(notebook: NotebookCreate):
             updated=str(new_notebook.updated),
             source_count=0,  # New notebook has no sources
             note_count=0,  # New notebook has no notes
+            chat_system_prompt_override=new_notebook.chat_system_prompt_override
         )
     except InvalidInputError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -108,6 +111,8 @@ async def get_notebook(notebook_id: str):
             updated=str(nb.get("updated", "")),
             source_count=nb.get("source_count", 0),
             note_count=nb.get("note_count", 0),
+            chat_system_prompt_override=nb.get(
+                "chat_system_prompt_override", "")
         )
     except HTTPException:
         raise
@@ -158,6 +163,8 @@ async def update_notebook(notebook_id: str, notebook_update: NotebookUpdate):
                 updated=str(nb.get("updated", "")),
                 source_count=nb.get("source_count", 0),
                 note_count=nb.get("note_count", 0),
+                chat_system_prompt_override=nb.get(
+                    "chat_system_prompt_override", "")
             )
 
         # Fallback if query fails
@@ -170,6 +177,7 @@ async def update_notebook(notebook_id: str, notebook_update: NotebookUpdate):
             updated=str(notebook.updated),
             source_count=0,
             note_count=0,
+            chat_system_prompt_override=notebook.chat_system_prompt_override
         )
     except HTTPException:
         raise
