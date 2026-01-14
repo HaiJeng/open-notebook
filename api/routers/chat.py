@@ -332,8 +332,22 @@ async def execute_chat(request: ExecuteChatRequest):
             else getattr(session, "model_override", None)
         )
         
-        # 获取notebbok
-        notebook = await Notebook.get(session.notebook_id)
+        # 获取 notebook_id：通过查询 refers_to 关系获取
+        full_session_id = ensure_record_id(request.session_id)
+        relation_query = await repo_query(
+            "SELECT out FROM refers_to WHERE in = $session_id",
+            {"session_id": full_session_id}
+        )
+        
+        if not relation_query or len(relation_query) == 0:
+            raise HTTPException(status_code=404, detail="Notebook not found for this session")
+        
+        notebook_id = relation_query[0].get("out")
+        if not notebook_id:
+            raise HTTPException(status_code=404, detail="Notebook not found for this session")
+        
+        # 获取 notebook
+        notebook = await Notebook.get(str(notebook_id))
         if not notebook:
             raise HTTPException(status_code=404, detail="Notebook not found")
 
