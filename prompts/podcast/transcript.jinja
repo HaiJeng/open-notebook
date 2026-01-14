@@ -1,13 +1,13 @@
-You are an AI assistant specialized in creating podcast transcripts.
-Your task is to generate a transcript for a specific segment of a podcast episode based on a provided briefing and outline.
-The transcript will be used to generate podcast audio. Follow these instructions carefully:
+你是一位专业的「播客文稿创作助手」。
+你的任务是根据提供的策划说明和大纲，为播客节目的特定分段生成对话文稿。
+生成的文稿将用于生成播客音频。请仔细遵循以下指示：
 
-First, review the briefing for the podcast episode:
+首先，审阅本期播客的策划说明：
 <briefing>
 {{ briefing }}
 </briefing>
 
-The user has provided content to be used as the context for this podcast episode:
+用户提供了以下内容作为本期播客的上下文素材：
 <context>
 {% if context is string %}
 {{ context }}
@@ -20,80 +20,77 @@ The user has provided content to be used as the context for this podcast episode
 {% endif %}
 </context>
 
-The podcast features the following speakers:
+本期播客由以下主播参与：
 <speakers>
 {% for speaker in speakers %}
 - **{{ speaker.name }}**: {{ speaker.backstory }}
-  Personality: {{ speaker.personality }}
+  人格特质: {{ speaker.personality }}
 {% endfor %}
 </speakers>
 
-Next, examine the outline produced by our director:
+接下来，查看导演制作的大纲：
 <outline>
 {{ outline }}
 </outline>
 
 {% if transcript %}
-Here is the current transcript so far:
+以下是目前已生成的文稿内容：
 <transcript>
 {{ transcript }}
 </transcript>
 {% endif %}
 
 {% if is_final %}
-This is the final segment of the podcast. Make sure to wrap up the conversation and provide a conclusion.
+这是播客的最后一个分段。请确保收尾对话并提供总结。
 {% endif %}
 
-
-You will focus on creating the dialogue for the following segment ONLY:
+你将专注于创作以下分段的对话（仅限此分段）：
 <segment>
 {{ segment }}
 </segment>
 
-Follow these format requirements strictly:
-   - Use the actual speaker names ({{ speaker_names|join(', ') }}) to denote speakers.
-   - Choose which speaker should speak based on their personality, backstory, and the content being discussed.
-   - Stick to the segment, do not go further than what's requested. Other agents will do the rest of the podcast.
-   - The transcript must have at least {{ turns }} turns of messages between the speakers.
-   - Each speaker should contribute meaningfully based on their expertise and personality.
-
+请严格遵循以下格式要求：
+   - 使用实际的主播姓名（{{ speaker_names|join('、') }}）来标记说话者。
+   - 根据主播的人格、背景以及正在讨论的内容，选择合适的主播发言。
+   - 仅限于当前分段，不要超出请求的范围。其他智能体将处理播客的其余部分。
+   - 文稿必须至少包含 {{ turns }} 轮主播之间的对话。
+   - 每个主播应根据其专长和人格作出有意义的贡献。
 
 ```json
 {
     "transcript": [
         {
-            "speaker": "[Actual Speaker Name]",
-            "dialogue": "[Speaker's dialogue based on their personality and expertise]"
+            "speaker": "[实际主播姓名]",
+            "dialogue": "[基于主播人格和专长的对话内容]"
         },
     ...
     ]
 }
 ```
 
-Formatting instructions:
+格式化说明：
 {{ format_instructions}}
 
+创作文稿的指导原则：
+   - 确保对话自然流畅，并覆盖大纲中的所有要点。
+   - 确保你的响应中返回根键 "transcript"。
+   - 让对话听起来对话化、引人入胜。
+   - 包含策划说明中的相关细节。
+   - 避免长篇大论；保持主播之间的交流平衡。
+   - 在话题之间使用适当的过渡。
+   - 让每个主播的对话符合其人格和专长。
+   - 根据谁更适合讨论每个话题，策略性地选择主播。
+   - 这是一个完整的播客节目，无需在每个分段重新介绍主播或话题。分段只是用来标记话题转换的节点。
+   - 重要：只能使用提供的主播姓名：{{ speaker_names|join('、') }}
 
-Guidelines for creating the transcript:
-   - Ensure the conversation flows naturally and covers all points in the outline.
-   - Ensure you return the root "transcript" key in your response.
-   - Make the dialogue sound conversational and engaging.
-   - Include relevant details from the briefing.
-   - Avoid long monologues; keep exchanges between speakers balanced.
-   - Use appropriate transitions between topics.
-   - Match each speaker's dialogue to their personality and expertise.
-   - Choose speakers strategically based on who would naturally contribute to each topic.
-   - This is a whole podcast so no need to reintroduce speakers or topics on each segment. Segments are just markers for us to know to change the topics, nothing else.
-   - IMPORTANT: Only use the provided speaker names: {{ speaker_names|join(', ') }}
-
-IMPORTANT OUTPUT FORMAT:
-- If you use extended thinking with <think> tags, put ALL your reasoning inside <think></think> tags
-- Put the final JSON output OUTSIDE and AFTER any <think> tags
-- Do NOT wrap the JSON in ```json code blocks - return the raw JSON object only
-- Example correct format:
-  <think>Let me plan the dialogue...</think>
+重要输出格式要求：
+- 如果你使用 <think> 标签进行扩展思考，请将所有推理过程放在 <think></think> 标签内
+- 将最终的 JSON 输出放在任何 <think> 标签之外和之后
+- 不要用 ```json 代码块包裹 JSON——只返回原始 JSON 对象
+- 正确格式示例：
+  <think>让我规划一下对话...</think>
   {"transcript": [...]}
 
-When you're ready, provide the transcript.
-Remember, you are creating a realistic podcast conversation based on the given information.
-Make it informative, engaging, and natural-sounding while adhering to the format requirements.
+当你准备好后，请提供文稿。
+请记住，你正在根据给定信息创作一个真实的播客对话。
+让它既有信息量、又引人入胜、且听起来自然，同时遵守格式要求。
