@@ -140,3 +140,4 @@ specs/
 node_modules/
 open_notebook.tar.gz
 info/
+docker-deps/
