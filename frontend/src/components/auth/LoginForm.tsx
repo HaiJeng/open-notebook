@@ -10,8 +10,10 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle } from 'lucide-react'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 export function LoginForm() {
+  const { t, language } = useTranslation()
   const [password, setPassword] = useState('')
   const { login, isLoading, error } = useAuth()
   const { authRequired, checkAuthRequired, hasHydrated, isAuthenticated } = useAuthStore()
@@ -81,9 +83,9 @@ export function LoginForm() {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle>连接错误</CardTitle>
+            <CardTitle>{t.common.connectionError}</CardTitle>
             <CardDescription>
-              无法连接到 API 服务器
+              {t.common.unableToConnect}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -91,21 +93,21 @@ export function LoginForm() {
               <div className="flex items-start gap-2 text-red-600 text-sm">
                 <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
-                  {error || '无法连接到服务器。请检查 API 是否正在运行。'}
+                  {error || t.auth.connectErrorHint}
                 </div>
               </div>
 
               {configInfo && (
                 <div className="space-y-2 text-xs text-muted-foreground border-t pt-3">
-                  <div className="font-medium">诊断信息：</div>
+                  <div className="font-medium">{t.common.diagnosticInfo}:</div>
                   <div className="space-y-1 font-mono">
-                    <div>版本: {configInfo.version}</div>
-                    <div>构建时间: {new Date(configInfo.buildTime).toLocaleString()}</div>
-                    <div className="break-all">API URL: {configInfo.apiUrl}</div>
-                    <div className="break-all">Frontend: {typeof window !== 'undefined' ? window.location.href : 'N/A'}</div>
+                    <div>{t.common.version}: {configInfo.version}</div>
+                    <div>{t.common.built}: {new Date(configInfo.buildTime).toLocaleString(language === 'zh-CN' ? 'zh-CN' : language === 'zh-TW' ? 'zh-TW' : 'en-US')}</div>
+                    <div className="break-all">{t.common.apiUrl}: {configInfo.apiUrl}</div>
+                    <div className="break-all">{t.common.frontendUrl}: {typeof window !== 'undefined' ? window.location.href : 'N/A'}</div>
                   </div>
                   <div className="text-xs pt-2">
-                    查看浏览器控制台以获取详细日志（查找 🔧 [Config] 消息）
+                    {t.common.checkConsoleLogs}
                   </div>
                 </div>
               )}
@@ -114,7 +116,7 @@ export function LoginForm() {
                 onClick={() => window.location.reload()}
                 className="w-full"
               >
-                重试连接
+                {t.common.retryConnection}
               </Button>
             </div>
           </CardContent>
@@ -139,9 +141,9 @@ export function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle>Open Notebook</CardTitle>
+          <CardTitle>{t.auth.loginTitle}</CardTitle>
           <CardDescription>
-            输入您的密码以访问应用
+            {t.auth.loginDesc}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -149,7 +151,7 @@ export function LoginForm() {
             <div>
               <Input
                 type="password"
-                placeholder="密码"
+                placeholder={t.auth.passwordPlaceholder}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
@@ -168,12 +170,12 @@ export function LoginForm() {
               className="w-full"
               disabled={isLoading || !password.trim()}
             >
-              {isLoading ? '登录中...' : '登录'}
+              {isLoading ? t.auth.signingIn : t.auth.signIn}
             </Button>
 
             {configInfo && (
               <div className="text-xs text-center text-muted-foreground pt-2 border-t">
-                <div>版本 {configInfo.version}</div>
+                <div>{t.common.version} {configInfo.version}</div>
                 <div className="font-mono text-[10px]">{configInfo.apiUrl}</div>
               </div>
             )}

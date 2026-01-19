@@ -18,8 +18,10 @@ import {
 } from '@/components/ui/accordion'
 import { embeddingApi } from '@/lib/api/embedding'
 import type { RebuildEmbeddingsRequest, RebuildStatusResponse } from '@/lib/api/embedding'
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 export function RebuildEmbeddings() {
+  const { t } = useTranslation()
   const [mode, setMode] = useState<'existing' | 'all'>('existing')
   const [includeSources, setIncludeSources] = useState(true)
   const [includeNotes, setIncludeNotes] = useState(true)
@@ -121,10 +123,10 @@ export function RebuildEmbeddings() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          🔄 重建嵌入向量
+          {t.advanced.rebuildEmbeddings}
         </CardTitle>
         <CardDescription>
-          重建内容的向量嵌入。在切换嵌入模型或修复损坏的嵌入时使用此功能。
+          {t.advanced.rebuildEmbeddingsDesc}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -132,25 +134,25 @@ export function RebuildEmbeddings() {
         {!isRebuildActive && (
           <div className="space-y-6">
             <div className="space-y-3">
-              <Label htmlFor="mode">重建模式</Label>
+              <Label htmlFor="mode">{t.advanced.rebuild.mode}</Label>
               <Select value={mode} onValueChange={(value) => setMode(value as 'existing' | 'all')}>
                 <SelectTrigger id="mode">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="existing">仅已有嵌入</SelectItem>
-                  <SelectItem value="all">全部</SelectItem>
+                  <SelectItem value="existing">{t.advanced.rebuild.existing}</SelectItem>
+                  <SelectItem value="all">{t.advanced.rebuild.all}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-sm text-muted-foreground">
                 {mode === 'existing'
-                  ? '仅重新嵌入已有嵌入的项目（更快，适用于模型切换）'
-                  : '重新嵌入已有项目 + 为无嵌入的项目创建嵌入（较慢，全面）'}
+                  ? t.advanced.rebuild.existingDesc
+                  : t.advanced.rebuild.allDesc}
               </p>
             </div>
 
-            <div className="space-y-3">
-              <Label>包含在重建中</Label>
+            <div className="space-y-3" role="group" aria-labelledby="include-label">
+              <span id="include-label" className="text-sm font-medium leading-none">{t.advanced.rebuild.include}</span>
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -159,7 +161,7 @@ export function RebuildEmbeddings() {
                     onCheckedChange={(checked) => setIncludeSources(checked === true)}
                   />
                   <Label htmlFor="sources" className="font-normal cursor-pointer">
-                    来源
+                    {t.navigation.sources}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -169,7 +171,7 @@ export function RebuildEmbeddings() {
                     onCheckedChange={(checked) => setIncludeNotes(checked === true)}
                   />
                   <Label htmlFor="notes" className="font-normal cursor-pointer">
-                    笔记
+                    {t.common.notes}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -179,7 +181,7 @@ export function RebuildEmbeddings() {
                     onCheckedChange={(checked) => setIncludeInsights(checked === true)}
                   />
                   <Label htmlFor="insights" className="font-normal cursor-pointer">
-                    洞察
+                    {t.common.insights}
                   </Label>
                 </div>
               </div>
@@ -187,7 +189,7 @@ export function RebuildEmbeddings() {
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    请至少选择一种项目类型进行重建
+                    {t.advanced.rebuild.selectOneError}
                   </AlertDescription>
                 </Alert>
               )}
@@ -201,10 +203,10 @@ export function RebuildEmbeddings() {
               {rebuildMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  正在启动重建...
+                  {t.advanced.rebuild.starting}
                 </>
               ) : (
-                '🚀 开始重建'
+                t.advanced.rebuild.startBtn
               )}
             </Button>
 
@@ -212,7 +214,7 @@ export function RebuildEmbeddings() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  启动重建失败: {(rebuildMutation.error as Error)?.message || '未知错误'}
+                  {t.advanced.rebuild.failed}: {(rebuildMutation.error as Error)?.message || t.common.error}
                 </AlertDescription>
               </Alert>
             )}
@@ -230,21 +232,21 @@ export function RebuildEmbeddings() {
                 {status.status === 'failed' && <XCircle className="h-5 w-5 text-red-500" />}
                 <div className="flex flex-col">
                   <span className="font-medium">
-                    {status.status === 'queued' && '队列中'}
-                    {status.status === 'running' && '运行中...'}
-                    {status.status === 'completed' && '已完成！'}
-                    {status.status === 'failed' && '失败'}
+                    {status.status === 'queued' && t.advanced.rebuild.queued}
+                    {status.status === 'running' && t.advanced.rebuild.running}
+                    {status.status === 'completed' && t.advanced.rebuild.completed}
+                    {status.status === 'failed' && t.advanced.rebuild.failed}
                   </span>
                   {status.status === 'running' && (
                     <span className="text-sm text-muted-foreground">
-                      您可以离开此页面，任务将在后台运行
+                      {t.advanced.rebuild.leavePageHint}
                     </span>
                   )}
                 </div>
               </div>
               {(status.status === 'completed' || status.status === 'failed') && (
                 <Button variant="outline" size="sm" onClick={handleReset}>
-                  开始新的重建
+                  {t.advanced.rebuild.startNew}
                 </Button>
               )}
             </div>
@@ -252,36 +254,39 @@ export function RebuildEmbeddings() {
             {progressData && (
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>进度</span>
+                  <span>{t.common.progress}</span>
                   <span className="font-medium">
-                    {processedItems}/{totalItems} 项 ({progressPercent.toFixed(1)}%)
+                    {t.advanced.rebuild.itemsProcessed
+                      .replace('{processed}', processedItems.toString())
+                      .replace('{total}', totalItems.toString())
+                      .replace('{percent}', progressPercent.toFixed(1))}
                   </span>
                 </div>
                 <Progress value={progressPercent} className="h-2" />
                 {failedItems > 0 && (
                   <p className="text-sm text-yellow-600">
-                    ⚠️ {failedItems} 项处理失败
+                    ⚠️ {t.advanced.rebuild.failedItems.replace('{count}', failedItems.toString())}
                   </p>
                 )}
               </div>
             )}
 
-            {stats && (
+             {stats && (
               <div className="grid grid-cols-4 gap-4">
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">来源</p>
+                  <p className="text-sm text-muted-foreground">{t.navigation.sources}</p>
                   <p className="text-2xl font-bold">{sourcesProcessed}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">笔记</p>
+                  <p className="text-sm text-muted-foreground">{t.common.notes}</p>
                   <p className="text-2xl font-bold">{notesProcessed}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">洞察</p>
+                  <p className="text-sm text-muted-foreground">{t.common.insights}</p>
                   <p className="text-2xl font-bold">{insightsProcessed}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">时间</p>
+                  <p className="text-sm text-muted-foreground">{t.advanced.rebuild.time}</p>
                   <p className="text-2xl font-bold">
                     {processingTimeSeconds !== undefined ? `${processingTimeSeconds.toFixed(1)}s` : '—'}
                   </p>
@@ -298,9 +303,9 @@ export function RebuildEmbeddings() {
 
             {status.started_at && (
               <div className="text-sm text-muted-foreground space-y-1">
-                <p>开始时间: {new Date(status.started_at).toLocaleString()}</p>
+                <p>{t.common.created.replace('{time}', new Date(status.started_at).toLocaleString())}</p>
                 {status.completed_at && (
-                  <p>完成时间: {new Date(status.completed_at).toLocaleString()}</p>
+                  <p>{t.notebooks.updated}: {new Date(status.completed_at).toLocaleString()}</p>
                 )}
               </div>
             )}
@@ -308,51 +313,25 @@ export function RebuildEmbeddings() {
         )}
 
         {/* Help Section */}
-        <Accordion type="single" collapsible className="w-full">
+         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="when">
-            <AccordionTrigger>什么时候应该重建嵌入向量？</AccordionTrigger>
+            <AccordionTrigger>{t.advanced.rebuild.whenToRebuild}</AccordionTrigger>
             <AccordionContent className="space-y-2 text-sm">
-              <p><strong>以下情况应重建嵌入向量：</strong></p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li><strong>切换嵌入模型：</strong> 如果您从一个嵌入模型切换到另一个，需要重建所有嵌入以确保一致性。</li>
-                <li><strong>升级模型版本：</strong> 更新到嵌入模型的新版本时，重建以利用改进功能。</li>
-                <li><strong>修复损坏的嵌入：</strong> 如果您怀疑某些嵌入已损坏或缺失，重建可以恢复它们。</li>
-                <li><strong>批量导入后：</strong> 如果您导入了没有嵌入的内容，使用“全部”模式嵌入所有内容。</li>
-              </ul>
+              <p>{t.advanced.rebuild.whenToRebuildAns}</p>
             </AccordionContent>
           </AccordionItem>
 
           <AccordionItem value="time">
-            <AccordionTrigger>重建需要多长时间？</AccordionTrigger>
+            <AccordionTrigger>{t.advanced.rebuild.howLong}</AccordionTrigger>
             <AccordionContent className="space-y-2 text-sm">
-              <p><strong>处理时间取决于：</strong></p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>要处理的项目数量</li>
-                <li>嵌入模型的速度</li>
-                <li>API 速率限制（针对云服务提供商）</li>
-                <li>系统资源</li>
-              </ul>
-              <p className="mt-2"><strong>典型速率：</strong></p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li><strong>本地模型</strong>（Ollama）：非常快，仅受硬件限制</li>
-                <li><strong>云 API</strong>（OpenAI、Google）：中等速度，大数据集可能触及速率限制</li>
-                <li><strong>来源：</strong> 比笔记/洞察慢（每个来源创建多个分块）</li>
-              </ul>
-              <p className="mt-2"><em>示例：使用云 API 重建 200 个项目可能需要 2-5 分钟，使用本地模型则不到 1 分钟。</em></p>
+              <p>{t.advanced.rebuild.howLongAns}</p>
             </AccordionContent>
           </AccordionItem>
 
           <AccordionItem value="safe">
-            <AccordionTrigger>在使用应用时重建安全吗？</AccordionTrigger>
+            <AccordionTrigger>{t.advanced.rebuild.isSafe}</AccordionTrigger>
             <AccordionContent className="space-y-2 text-sm">
-              <p><strong>是的，重建是安全的！</strong> 重建过程：</p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>✅ <strong>具有幂等性：</strong> 多次运行产生相同结果</li>
-                <li>✅ <strong>不会删除内容：</strong> 仅替换嵌入向量</li>
-                <li>✅ <strong>可随时运行：</strong> 无需停止其他操作</li>
-                <li>✅ <strong>优雅处理错误：</strong> 失败的项目会被记录并跳过</li>
-              </ul>
-              <p className="mt-2">⚠️ <strong>但是：</strong> 非常大的重建（数千个项目）在处理时可能会暂时减慢搜索速度。</p>
+              <p>{t.advanced.rebuild.isSafeAns}</p>
             </AccordionContent>
           </AccordionItem>
         </Accordion>

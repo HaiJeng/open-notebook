@@ -10,6 +10,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { useDeleteModel } from '@/lib/hooks/use-models'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { useState, useMemo } from 'react'
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 interface ModelTypeSectionProps {
   type: 'language' | 'embedding' | 'text_to_speech' | 'speech_to_text'
@@ -21,6 +22,7 @@ interface ModelTypeSectionProps {
 const COLLAPSED_ITEM_COUNT = 5
 
 export function ModelTypeSection({ type, models, providers, isLoading }: ModelTypeSectionProps) {
+  const { t } = useTranslation()
   const [deleteModel, setDeleteModel] = useState<Model | null>(null)
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null)
   const [isExpanded, setIsExpanded] = useState(false)
@@ -30,32 +32,32 @@ export function ModelTypeSection({ type, models, providers, isLoading }: ModelTy
     switch (type) {
       case 'language':
         return {
-          title: '语言模型',
-          description: '聊天、转换和文本生成',
+          title: t.models.language,
+          description: t.models.languageDesc,
           icon: Bot,
           iconColor: 'text-blue-500',
           bgColor: 'bg-blue-50 dark:bg-blue-950/20'
         }
       case 'embedding':
         return {
-          title: '嵌入模型',
-          description: '语义搜索和向量嵌入',
+          title: t.models.embedding,
+          description: t.models.embeddingDesc,
           icon: Search,
           iconColor: 'text-green-500',
           bgColor: 'bg-green-50 dark:bg-green-950/20'
         }
       case 'text_to_speech':
         return {
-          title: '文本转语音',
-          description: '从文本生成音频',
+          title: t.models.tts,
+          description: t.models.ttsDesc,
           icon: Volume2,
           iconColor: 'text-purple-500',
           bgColor: 'bg-purple-50 dark:bg-purple-950/20'
         }
       case 'speech_to_text':
         return {
-          title: '语音转文本',
-          description: '将音频转录为文本',
+          title: t.models.stt,
+          description: t.models.sttDesc,
           icon: Mic,
           iconColor: 'text-orange-500',
           bgColor: 'bg-orange-50 dark:bg-orange-950/20'
@@ -118,7 +120,7 @@ export function ModelTypeSection({ type, models, providers, isLoading }: ModelTy
                 className="cursor-pointer text-xs"
                 onClick={() => setSelectedProvider(null)}
               >
-                全部
+                {t.models.all}
               </Badge>
               {modelProviders.map(provider => (
                 <Badge
@@ -143,8 +145,8 @@ export function ModelTypeSection({ type, models, providers, isLoading }: ModelTy
           ) : filteredModels.length === 0 ? (
             <div className="text-center py-6 text-sm text-muted-foreground">
               {selectedProvider 
-                ? `未配置 ${selectedProvider} 模型`
-                : '未配置模型'
+                ? t.models.noProviderModelsConfigured.replace('{provider}', selectedProvider)
+                : t.models.noModelsConfigured
               }
             </div>
           ) : (
@@ -182,12 +184,12 @@ export function ModelTypeSection({ type, models, providers, isLoading }: ModelTy
                   {isExpanded ? (
                     <>
                       <ChevronUp className="h-4 w-4 mr-2" />
-                      显示更少
+                      {t.models.seeLess}
                     </>
                   ) : (
                     <>
                       <ChevronDown className="h-4 w-4 mr-2" />
-                      显示更多 {filteredModels.length - COLLAPSED_ITEM_COUNT} 个
+                      {t.models.showMore.replace('{count}', (filteredModels.length - COLLAPSED_ITEM_COUNT).toString())}
                     </>
                   )}
                 </Button>
@@ -200,9 +202,9 @@ export function ModelTypeSection({ type, models, providers, isLoading }: ModelTy
       <ConfirmDialog
         open={!!deleteModel}
         onOpenChange={(open) => !open && setDeleteModel(null)}
-        title="删除模型"
-        description={`确定要删除 "${deleteModel?.name}" 吗？此操作无法撤销。`}
-        confirmText="删除"
+        title={t.models.deleteModel}
+        description={t.models.deleteModelDesc.replace('{name}', deleteModel?.name || '')}
+        confirmText={t.common.delete}
         confirmVariant="destructive"
         onConfirm={handleDelete}
       />

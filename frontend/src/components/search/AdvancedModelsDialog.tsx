@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { ModelSelector } from '@/components/common/ModelSelector'
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 interface AdvancedModelsDialogProps {
   open: boolean
@@ -33,6 +34,7 @@ export function AdvancedModelsDialog({
   defaultModels,
   onSave
 }: AdvancedModelsDialogProps) {
+  const { t } = useTranslation()
   const [strategyModel, setStrategyModel] = useState(defaultModels.strategy)
   const [answerModel, setAnswerModel] = useState(defaultModels.answer)
   const [finalAnswerModel, setFinalAnswerModel] = useState(defaultModels.finalAnswer)
@@ -57,44 +59,44 @@ export function AdvancedModelsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>高级模型选择</DialogTitle>
+          <DialogTitle>{t.searchPage.advancedModelTitle}</DialogTitle>
           <DialogDescription>
-            为询问过程的每个阶段选择特定模型
+            {t.searchPage.advancedModelDesc}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <ModelSelector
-            label="策略模型"
+            label={t.searchPage.strategyModel}
             modelType="language"
             value={strategyModel}
             onChange={setStrategyModel}
-            placeholder="选择策略模型"
+            placeholder={t.searchPage.selectStrategyPlaceholder}
           />
 
           <ModelSelector
-            label="回答模型"
+            label={t.searchPage.answerModel}
             modelType="language"
             value={answerModel}
             onChange={setAnswerModel}
-            placeholder="选择回答模型"
+            placeholder={t.searchPage.selectAnswerPlaceholder}
           />
 
           <ModelSelector
-            label="最终回答模型"
+            label={t.searchPage.finalAnswerModel}
             modelType="language"
             value={finalAnswerModel}
             onChange={setFinalAnswerModel}
-            placeholder="选择最终回答模型"
+            placeholder={t.searchPage.selectFinalPlaceholder}
           />
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            取消
+            {t.common.cancel}
           </Button>
           <Button onClick={handleSave}>
-            保存更改
+            {t.searchPage.saveChanges}
           </Button>
         </DialogFooter>
       </DialogContent>

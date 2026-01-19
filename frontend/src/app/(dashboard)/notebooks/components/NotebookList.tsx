@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { Book, ChevronDown, ChevronRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 interface NotebookListProps {
   notebooks?: NotebookResponse[]
@@ -29,6 +30,7 @@ export function NotebookList({
   onAction,
   actionLabel,
 }: NotebookListProps) {
+  const { t } = useTranslation()
   const [isExpanded, setIsExpanded] = useState(!collapsible)
 
   if (isLoading) {
@@ -43,8 +45,8 @@ export function NotebookList({
     return (
       <EmptyState
         icon={Book}
-        title={emptyTitle ?? `暂无 ${title}`}
-        description={emptyDescription ?? '从创建您的第一个笔记本开始，组织您的研究。'}
+        title={emptyTitle ?? t.common.noResults}
+        description={emptyDescription ?? t.chat.startByCreating}
         action={onAction && actionLabel ? (
           <Button onClick={onAction} variant="outline" className="mt-4">
             <Plus className="h-4 w-4 mr-2" />

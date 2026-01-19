@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useId } from 'react'
 import { useForm } from 'react-hook-form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -11,73 +11,85 @@ import { ModelDefaults, Model } from '@/lib/types/models'
 import { useUpdateModelDefaults } from '@/lib/hooks/use-models'
 import { AlertCircle, X } from 'lucide-react'
 import { EmbeddingModelChangeDialog } from './EmbeddingModelChangeDialog'
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 interface DefaultModelsSectionProps {
   models: Model[]
   defaults: ModelDefaults
 }
 
-interface DefaultConfig {
-  key: keyof ModelDefaults
-  label: string
-  description: string
-  modelType: 'language' | 'embedding' | 'text_to_speech' | 'speech_to_text'
-  required?: boolean
-}
-
-const defaultConfigs: DefaultConfig[] = [
-  {
-    key: 'default_chat_model',
-    label: '聊天模型',
-    description: '用于对话',
-    modelType: 'language',
-    required: true
-  },
-  {
-    key: 'default_transformation_model',
-    label: '转换模型',
-    description: '用于摘要、见解和转换',
-    modelType: 'language',
-    required: true
-  },
-  {
-    key: 'default_tools_model',
-    label: '工具模型',
-    description: '用于函数调用 - 推荐使用 OpenAI 或 Anthropic',
-    modelType: 'language'
-  },
-  {
-    key: 'large_context_model',
-    label: '长上下文模型',
-    description: '用于处理大型文档 - 推荐使用 Gemini',
-    modelType: 'language'
-  },
-  {
-    key: 'default_embedding_model',
-    label: '嵌入模型',
-    description: '用于语义搜索和向量嵌入',
-    modelType: 'embedding',
-    required: true
-  },
-  {
-    key: 'default_text_to_speech_model',
-    label: '文本转语音模型',
-    description: '用于播客生成',
-    modelType: 'text_to_speech'
-  },
-  {
-    key: 'default_speech_to_text_model',
-    label: '语音转文本模型',
-    description: '用于音频转录',
-    modelType: 'speech_to_text'
-  }
-]
-
 export function DefaultModelsSection({ models, defaults }: DefaultModelsSectionProps) {
+  const { t } = useTranslation()
   const updateDefaults = useUpdateModelDefaults()
   const { setValue, watch } = useForm<ModelDefaults>({
     defaultValues: defaults
   })
+
+  interface DefaultConfig {
+    key: keyof ModelDefaults
+    label: string
+    description: string
+    modelType: 'language' | 'embedding' | 'text_to_speech' | 'speech_to_text'
+    required?: boolean
+    id: string
+  }
+
+  const generatedId = useId()
+
+  const defaultConfigs: DefaultConfig[] = [
+    {
+      key: 'default_chat_model',
+      label: t.models.chatModelLabel,
+      description: t.models.chatModelDesc,
+      modelType: 'language',
+      required: true,
+      id: `${generatedId}-chat`,
+    },
+    {
+      key: 'default_transformation_model',
+      label: t.models.transformationModelLabel,
+      description: t.models.transformationModelDesc,
+      modelType: 'language',
+      required: true,
+      id: `${generatedId}-transformation`,
+    },
+    {
+      key: 'default_tools_model',
+      label: t.models.toolsModelLabel,
+      description: t.models.toolsModelDesc,
+      modelType: 'language',
+      id: `${generatedId}-tools`,
+    },
+    {
+      key: 'large_context_model',
+      label: t.models.largeContextModelLabel,
+      description: t.models.largeContextModelDesc,
+      modelType: 'language',
+      id: `${generatedId}-large-context`,
+    },
+    {
+      key: 'default_embedding_model',
+      label: t.models.embeddingModelLabel,
+      description: t.models.embeddingModelDesc,
+      modelType: 'embedding',
+      required: true,
+      id: `${generatedId}-embedding`,
+    },
+    {
+      key: 'default_text_to_speech_model',
+      label: t.models.ttsModelLabel,
+      description: t.models.ttsModelDesc,
+      modelType: 'text_to_speech',
+      id: `${generatedId}-tts`,
+    },
+    {
+      key: 'default_speech_to_text_model',
+      label: t.models.sttModelLabel,
+      description: t.models.sttModelDesc,
+      modelType: 'speech_to_text',
+      id: `${generatedId}-stt`,
+    },
+  ]
 
   // State for embedding model change dialog
   const [showEmbeddingDialog, setShowEmbeddingDialog] = useState(false)
@@ -153,9 +165,9 @@ export function DefaultModelsSection({ models, defaults }: DefaultModelsSectionP
   return (
     <Card>
       <CardHeader>
-        <CardTitle>默认模型分配</CardTitle>
+        <CardTitle>{t.models.defaultAssignments}</CardTitle>
         <CardDescription>
-          配置在 Open Notebook 中用于不同目的的模型
+          {t.models.defaultAssignmentsDesc}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -163,8 +175,7 @@ export function DefaultModelsSection({ models, defaults }: DefaultModelsSectionP
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              缺少必填模型：{missingRequired.join(', ')}。
-              Open Notebook 可能无法正常运行。
+              {t.models.missingRequiredModels.replace('{models}', missingRequired.join(', '))}
             </AlertDescription>
           </Alert>
         )}
@@ -179,7 +190,7 @@ export function DefaultModelsSection({ models, defaults }: DefaultModelsSectionP
 
             return (
               <div key={config.key} className="space-y-2">
-                <Label>
+                <Label htmlFor={config.id}>
                   {config.label}
                   {config.required && <span className="text-destructive ml-1">*</span>}
                 </Label>
@@ -188,15 +199,18 @@ export function DefaultModelsSection({ models, defaults }: DefaultModelsSectionP
                     value={currentValue || ""}
                     onValueChange={(value) => handleChange(config.key, value)}
                   >
-                    <SelectTrigger className={
-                      config.required && !isValidModel && availableModels.length > 0
-                        ? 'border-destructive' 
-                        : ''
-                    }>
+                    <SelectTrigger 
+                      id={config.id}
+                      className={
+                        config.required && !isValidModel && availableModels.length > 0
+                          ? 'border-destructive' 
+                          : ''
+                      }
+                    >
                       <SelectValue placeholder={
                         config.required && !isValidModel && availableModels.length > 0 
-                          ? "⚠️ 必填 - 请选择模型"
-                          : "选择模型"
+                          ? t.models.requiredModelPlaceholder
+                          : t.models.selectModelPlaceholder
                       } />
                     </SelectTrigger>
                     <SelectContent>
@@ -236,7 +250,7 @@ export function DefaultModelsSection({ models, defaults }: DefaultModelsSectionP
             rel="noopener noreferrer"
             className="text-sm text-primary hover:underline"
           >
-            我该选择哪个模型？ →
+            {t.models.whichModelToChoose}
           </a>
         </div>
       </CardContent>

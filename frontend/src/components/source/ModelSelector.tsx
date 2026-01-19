@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dialog'
 import { Settings2, Sparkles } from 'lucide-react'
 import { useModelDefaults, useModels } from '@/lib/hooks/use-models'
+import { useTranslation } from '@/lib/hooks/use-translation'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 
 interface ModelSelectorProps {
@@ -34,6 +35,7 @@ export function ModelSelector({
   onModelChange,
   disabled = false 
 }: ModelSelectorProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [selectedModel, setSelectedModel] = useState(currentModel || 'default')
   const { data: models, isLoading } = useModels()
@@ -65,8 +67,8 @@ export function ModelSelector({
     if (defaultModel) {
       return defaultModel.name
     }
-    return '默认模型'
-  }, [currentModel, languageModels, defaultModel])
+    return t.common.default
+  }, [currentModel, languageModels, defaultModel, t.common.default])
 
   const handleSave = () => {
     onModelChange(selectedModel === 'default' ? undefined : selectedModel)
@@ -98,24 +100,26 @@ export function ModelSelector({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5" />
-            模型配置
+            {t.common.modelConfiguration}
           </DialogTitle>
           <DialogDescription>
-            为此对话会话覆盖默认模型。留空则使用系统默认模型。
+            {t.transformations.overrideModelDesc}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="model">模型</Label>
+            <Label htmlFor="model">{t.common.model}</Label>
             <Select value={selectedModel} onValueChange={setSelectedModel}>
               <SelectTrigger id="model">
-                <SelectValue placeholder="选择模型（或使用默认模型）" />
+                <SelectValue placeholder={t.models.selectModelPlaceholder} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="default">
                   <div className="flex items-center justify-between w-full">
                     <span>
-                      {defaultModel ? `默认 (${defaultModel.name})` : '系统默认'}
+                      {defaultModel 
+                        ? `${t.common.default} (${defaultModel.name})` 
+                        : t.transformations.systemDefault}
                     </span>
                     {defaultModel?.provider && (
                       <span className="text-xs text-muted-foreground ml-2">
@@ -146,17 +150,20 @@ export function ModelSelector({
           {selectedModel && selectedModel !== 'default' && (
             <div className="rounded-lg bg-muted p-3">
               <p className="text-sm text-muted-foreground">
-                此会话将使用 <strong>{languageModels.find(m => m.id === selectedModel)?.name}</strong> 而不是默认模型。
+                {t.transformations.sessionUseReplacement.replace(
+                  '{name}', 
+                  languageModels.find(m => m.id === selectedModel)?.name || selectedModel
+                )}
               </p>
             </div>
           )}
         </div>
         <DialogFooter className="flex justify-between">
           <Button variant="outline" onClick={handleReset}>
-            重置为默认
+            {t.common.resetToDefault}
           </Button>
           <Button onClick={handleSave}>
-            保存更改
+            {t.common.saveChanges}
           </Button>
         </DialogFooter>
       </DialogContent>

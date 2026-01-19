@@ -1,3 +1,7 @@
 -- Migration 10 Down: Remove chat_system_prompt_override field from notebook table
 
 REMOVE FIELD IF EXISTS chat_system_prompt_override ON TABLE notebook;
+-- Rollback Migration 10: Remove source field indexes
+
+REMOVE INDEX IF EXISTS idx_source_insight_source ON TABLE source_insight;
+REMOVE INDEX IF EXISTS idx_source_embedding_source ON TABLE source_embedding;

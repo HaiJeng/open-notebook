@@ -10,31 +10,33 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { GeneratePodcastDialog } from '@/components/podcasts/GeneratePodcastDialog'
+import { useTranslation } from '@/lib/hooks/use-translation'
+import { TranslationKeys } from '@/lib/locales'
 
-const STATUS_ORDER: Array<{
+const getSTATUS_ORDER = (t: TranslationKeys): Array<{
   key: 'running' | 'completed' | 'failed' | 'pending'
   title: string
   description?: string
-}> = [
+}> => [
   {
     key: 'running',
-    title: '正在处理',
-    description: '正在生成资产的剧集。',
+    title: t.podcasts.statusRunningTitle,
+    description: t.podcasts.statusRunningDesc,
   },
   {
     key: 'pending',
-    title: '排队中 / 待处理',
-    description: '已提交的剧集正在等待开始处理。',
+    title: t.podcasts.statusPendingTitle,
+    description: t.podcasts.statusPendingDesc,
   },
   {
     key: 'completed',
-    title: '已完成的剧集',
-    description: '准备好查看、下载或发布。',
+    title: t.podcasts.statusCompletedTitle,
+    description: t.podcasts.statusCompletedDesc,
   },
   {
     key: 'failed',
-    title: '失败的剧集',
-    description: '在生成过程中遇到问题的剧集。',
+    title: t.podcasts.statusFailedTitle,
+    description: t.podcasts.statusFailedDesc,
   },
 ]
 
@@ -48,6 +50,7 @@ function SummaryBadge({ label, value }: { label: string; value: number }) {
 }
 
 export function EpisodesTab() {
+  const { t } = useTranslation()
   const [showGenerateDialog, setShowGenerateDialog] = useState(false)
   const {
     episodes,
@@ -75,14 +78,14 @@ export function EpisodesTab() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-1">
-          <h2 className="text-xl font-semibold">剧集概览</h2>
+          <h2 className="text-xl font-semibold">{t.podcasts.overviewTitle}</h2>
           <p className="text-sm text-muted-foreground">
-            监控播客生成任务并查看最终产品。
+            {t.podcasts.overviewDesc}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button onClick={() => setShowGenerateDialog(true)}>
-            生成播客
+            {t.podcasts.generateBtn}
           </Button>
           <Button
             variant="outline"
@@ -95,25 +98,25 @@ export function EpisodesTab() {
             ) : (
               <RefreshCcw className="mr-2 h-4 w-4" />
             )}
-            刷新
+            {t.common.refresh}
           </Button>
         </div>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <SummaryBadge label="总计" value={statusCounts.total} />
-        <SummaryBadge label="处理中" value={statusCounts.running} />
-        <SummaryBadge label="已完成" value={statusCounts.completed} />
-        <SummaryBadge label="失败" value={statusCounts.failed} />
-        <SummaryBadge label="待处理" value={statusCounts.pending} />
+        <SummaryBadge label={t.podcasts.total} value={statusCounts.total} />
+        <SummaryBadge label={t.podcasts.processingLabel} value={statusCounts.running} />
+        <SummaryBadge label={t.podcasts.completedLabel} value={statusCounts.completed} />
+        <SummaryBadge label={t.podcasts.failedLabel} value={statusCounts.failed} />
+        <SummaryBadge label={t.podcasts.pendingLabel} value={statusCounts.pending} />
       </div>
 
       {isError ? (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>加载剧集失败</AlertTitle>
+          <AlertTitle>{t.podcasts.loadErrorTitle}</AlertTitle>
           <AlertDescription>
-            我们无法获取最新的播客剧集。稍后再试。
+            {t.podcasts.loadErrorDesc}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -121,19 +124,19 @@ export function EpisodesTab() {
       {isLoading ? (
         <div className="flex items-center gap-3 rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
-          加载剧集中…
+          {t.podcasts.loadingEpisodes}
         </div>
       ) : null}
 
       {emptyState ? (
         <div className="rounded-lg border border-dashed bg-muted/30 p-10 text-center">
           <p className="text-sm text-muted-foreground">
-            还没有播客剧集。从笔记本或资源聊天界面生成您的第一个。
+            {t.podcasts.noEpisodesYet}
           </p>
         </div>
       ) : null}
 
-      {STATUS_ORDER.map(({ key, title, description }) => {
+      {getSTATUS_ORDER(t).map(({ key, title, description }) => {
         const data = statusGroups[key]
         if (!data || data.length === 0) {
           return null

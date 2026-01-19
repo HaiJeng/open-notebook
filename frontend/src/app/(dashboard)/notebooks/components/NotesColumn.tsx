@@ -15,6 +15,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { EmptyState } from '@/components/common/EmptyState'
 import { Badge } from '@/components/ui/badge'
 import { NoteEditorDialog } from './NoteEditorDialog'
+import { getDateLocale } from '@/lib/utils/date-locale'
 import { formatDistanceToNow } from 'date-fns'
 import { ContextToggle } from '@/components/common/ContextToggle'
 import { ContextMode } from '../[id]/page'
@@ -22,6 +23,7 @@ import { useDeleteNote } from '@/lib/hooks/use-notes'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { CollapsibleColumn, createCollapseButton } from '@/components/notebooks/CollapsibleColumn'
 import { useNotebookColumnsStore } from '@/lib/stores/notebook-columns-store'
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 interface NotesColumnProps {
   notes?: NoteResponse[]
@@ -38,6 +40,7 @@ export function NotesColumn({
   contextSelections,
   onContextModeChange
 }: NotesColumnProps) {
+  const { t, language } = useTranslation()
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [editingNote, setEditingNote] = useState<NoteResponse | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -48,8 +51,8 @@ export function NotesColumn({
   // Collapsible column state
   const { notesCollapsed, toggleNotes } = useNotebookColumnsStore()
   const collapseButton = useMemo(
-    () => createCollapseButton(toggleNotes, '笔记'),
-    [toggleNotes]
+    () => createCollapseButton(toggleNotes, t.common.notes),
+    [toggleNotes, t.common.notes]
   )
 
   const handleDeleteClick = (noteId: string) => {
@@ -75,12 +78,12 @@ export function NotesColumn({
         isCollapsed={notesCollapsed}
         onToggle={toggleNotes}
         collapsedIcon={StickyNote}
-        collapsedLabel="笔记"
+        collapsedLabel={t.common.notes}
       >
         <Card className="h-full flex flex-col flex-1 overflow-hidden">
           <CardHeader className="pb-3 flex-shrink-0">
             <div className="flex items-center justify-between gap-2">
-              <CardTitle className="text-lg">笔记</CardTitle>
+              <CardTitle className="text-lg">{t.common.notes}</CardTitle>
               <div className="flex items-center gap-2">
                 <Button
                   size="sm"
@@ -90,7 +93,7 @@ export function NotesColumn({
                   }}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  编写笔记
+                  {t.common.writeNote}
                 </Button>
                 {collapseButton}
               </div>
@@ -105,8 +108,8 @@ export function NotesColumn({
             ) : !notes || notes.length === 0 ? (
               <EmptyState
                 icon={StickyNote}
-                title="暂无笔记"
-                description="创建您的第一个笔记，记录见解和观察。"
+                title={t.notebooks.noNotesYet}
+                description={t.sources.createFirstNote}
               />
             ) : (
               <div className="space-y-3">
@@ -124,13 +127,16 @@ export function NotesColumn({
                           <User className="h-4 w-4 text-muted-foreground" />
                         )}
                         <Badge variant="secondary" className="text-xs">
-                          {note.note_type === 'ai' ? 'AI 生成' : '人工'}
+                          {note.note_type === 'ai' ? t.common.aiGenerated : t.common.human}
                         </Badge>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(note.updated), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(note.updated), { 
+                            addSuffix: true,
+                            locale: getDateLocale(language)
+                          })}
                         </span>
 
                         {/* Context toggle - only show if handler provided */}
@@ -165,7 +171,7 @@ export function NotesColumn({
                               className="text-red-600 focus:text-red-600"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
-                              删除笔记
+                              {t.notebooks.deleteNote}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -206,9 +212,9 @@ export function NotesColumn({
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title="删除笔记"
-        description="您确定要删除此笔记吗？此操作无法撤销。"
-        confirmText="删除"
+        title={t.notebooks.deleteNote}
+        description={t.notebooks.deleteNoteConfirm}
+        confirmText={t.common.delete}
         onConfirm={handleDeleteConfirm}
         isLoading={deleteNote.isPending}
         confirmVariant="destructive"

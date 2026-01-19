@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/collapsible'
 import { Database, Server, ChevronDown, ExternalLink } from 'lucide-react'
 import { ConnectionError } from '@/lib/types/config'
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 interface ConnectionErrorOverlayProps {
   error: ConnectionError
@@ -20,6 +21,7 @@ export function ConnectionErrorOverlay({
   error,
   onRetry,
 }: ConnectionErrorOverlayProps) {
+  const { t } = useTranslation()
   const [showDetails, setShowDetails] = useState(false)
   const isApiError = error.type === 'api-unreachable'
 
@@ -41,56 +43,56 @@ export function ConnectionErrorOverlay({
           <div>
             <h1 className="text-2xl font-bold" id="error-title">
               {isApiError
-                ? '无法连接到 API 服务器'
-                : '数据库连接失败'}
+                ? t.connectionErrors.apiTitle
+                : t.connectionErrors.dbTitle}
             </h1>
             <p className="text-muted-foreground">
               {isApiError
-                ? '无法连接到 Open Notebook API 服务器'
-                : 'API 服务器正在运行，但数据库无法访问'}
+                ? t.connectionErrors.apiDesc
+                : t.connectionErrors.dbDesc}
             </p>
           </div>
         </div>
 
         {/* Troubleshooting instructions */}
         <div className="space-y-4 border-l-4 border-primary pl-4">
-          <h2 className="font-semibold">这通常意味着：</h2>
+          <h2 className="font-semibold">{t.connectionErrors.troubleshooting}</h2>
           <ul className="list-disc list-inside space-y-2 text-sm">
             {isApiError ? (
               <>
-                <li>API 服务器未运行</li>
-                <li>API 服务器运行在不同的地址</li>
-                <li>网络连接问题</li>
+                <li>{t.connectionErrors.apiUnreachable1}</li>
+                <li>{t.connectionErrors.apiUnreachable2}</li>
+                <li>{t.connectionErrors.apiUnreachable3}</li>
               </>
             ) : (
               <>
-                <li>SurrealDB 未运行</li>
-                <li>数据库连接设置不正确</li>
-                <li>API 与数据库之间的网络问题</li>
+                <li>{t.connectionErrors.dbFailed1}</li>
+                <li>{t.connectionErrors.dbFailed2}</li>
+                <li>{t.connectionErrors.dbFailed3}</li>
               </>
             )}
           </ul>
 
-          <h2 className="font-semibold mt-4">快速修复：</h2>
+          <h2 className="font-semibold mt-4">{t.connectionErrors.quickFixes}</h2>
           {isApiError ? (
             <div className="space-y-2 text-sm bg-muted p-4 rounded">
-              <p className="font-medium">设置 API_URL 环境变量：</p>
+              <p className="font-medium">{t.connectionErrors.setApiUrl}</p>
               <code className="block bg-background p-2 rounded text-xs">
-                # 对于 Docker:
+                # {t.connectionErrors.dockerLabel}:
                 <br />
                 docker run -e API_URL=http://your-host:5055 ...
                 <br />
                 <br />
-                # 对于本地开发 (.env 文件):
+                # {t.connectionErrors.localDevLabel}:
                 <br />
                 API_URL=http://localhost:5055
               </code>
             </div>
           ) : (
             <div className="space-y-2 text-sm bg-muted p-4 rounded">
-              <p className="font-medium">检查 SurrealDB 是否正在运行：</p>
+              <p className="font-medium">{t.connectionErrors.checkSurreal}</p>
               <code className="block bg-background p-2 rounded text-xs">
-                # For Docker:
+                # {t.connectionErrors.dockerLabel}:
                 <br />
                 docker compose ps | grep surrealdb
                 <br />
@@ -102,14 +104,14 @@ export function ConnectionErrorOverlay({
 
         {/* Documentation link */}
         <div className="text-sm">
-          <p>有关详细的安装说明，请参阅：</p>
+          <p>{t.connectionErrors.seeDocumentation}</p>
           <a
             href="https://github.com/lfnovo/open-notebook"
             target="_blank"
             rel="noopener noreferrer"
             className="text-primary hover:underline inline-flex items-center gap-1"
           >
-            Open Notebook 文档
+            {t.connectionErrors.docLink}
             <ExternalLink className="w-4 h-4" />
           </a>
         </div>
@@ -119,7 +121,7 @@ export function ConnectionErrorOverlay({
           <Collapsible open={showDetails} onOpenChange={setShowDetails}>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="w-full justify-between">
-                <span>显示技术详情</span>
+                <span>{t.connectionErrors.showTechnical}</span>
                 <ChevronDown
                   className={`w-4 h-4 transition-transform ${
                     showDetails ? 'rotate-180' : ''
@@ -131,23 +133,23 @@ export function ConnectionErrorOverlay({
               <div className="space-y-2 text-sm bg-muted p-4 rounded font-mono">
                 {error.details.attemptedUrl && (
                   <div>
-                    <strong>尝试访问的 URL：</strong> {error.details.attemptedUrl}
+                    <strong>{t.connectionErrors.attemptedUrl}:</strong> {error.details.attemptedUrl}
                   </div>
                 )}
                 {error.details.message && (
                   <div>
-                    <strong>消息：</strong> {error.details.message}
+                    <strong>{t.connectionErrors.message}:</strong> {error.details.message}
                   </div>
                 )}
                 {error.details.technicalMessage && (
                   <div>
-                    <strong>技术详情：</strong>{' '}
+                    <strong>{t.connectionErrors.technicalDetails}:</strong>{' '}
                     {error.details.technicalMessage}
                   </div>
                 )}
                 {error.details.stack && (
                   <div>
-                    <strong>堆栈追踪：</strong>
+                    <strong>{t.connectionErrors.stackTrace}:</strong>
                     <pre className="mt-2 overflow-x-auto text-xs">
                       {error.details.stack}
                     </pre>
@@ -161,10 +163,10 @@ export function ConnectionErrorOverlay({
         {/* Retry button */}
         <div className="pt-4 border-t">
           <Button onClick={onRetry} className="w-full" size="lg">
-            重试连接
+            {t.connectionErrors.retryLabel}
           </Button>
           <p className="text-xs text-muted-foreground text-center mt-2">
-            按 R 键或点击按钮重试
+            {t.connectionErrors.retryHint}
           </p>
         </div>
       </Card>

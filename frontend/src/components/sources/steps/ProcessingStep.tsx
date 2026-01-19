@@ -1,6 +1,7 @@
 "use client"
 
 import { Control, Controller } from "react-hook-form"
+import { useTranslation } from "@/lib/hooks/use-translation"
 import { FormSection } from "@/components/ui/form-section"
 import { CheckboxList } from "@/components/ui/checkbox-list"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -36,6 +37,7 @@ export function ProcessingStep({
   loading = false,
   settings
 }: ProcessingStepProps) {
+  const { t } = useTranslation()
   const transformationItems = transformations.map((transformation) => ({
     id: transformation.id,
     title: transformation.title,
@@ -45,21 +47,21 @@ export function ProcessingStep({
   return (
     <div className="space-y-8">
       <FormSection
-        title="转换（可选）"
-        description="应用 AI 转换来分析并从内容中提取见解。"
+        title={`${t.navigation.transformations} (${t.common.optional})`}
+        description={t.sources.processDescription}
       >
         <CheckboxList
           items={transformationItems}
           selectedIds={selectedTransformations}
           onToggle={onToggleTransformation}
           loading={loading}
-          emptyMessage="未找到转换。"
+          emptyMessage={t.common.noMatches}
         />
       </FormSection>
 
       <FormSection
-        title="处理设置"
-        description="配置资源的在线处理和存储方式。"
+        title={t.navigation.settings}
+        description={t.sources.processDescription}
       >
         <div className="space-y-4">
           {settings?.default_embedding_option === 'ask' && (
@@ -67,16 +69,20 @@ export function ProcessingStep({
               control={control}
               name="embed"
               render={({ field }) => (
-                <label className="flex items-start gap-3 cursor-pointer p-3 rounded-md hover:bg-muted">
+                <label 
+                  htmlFor="enable-embedding"
+                  className="flex items-start gap-3 cursor-pointer p-3 rounded-md hover:bg-muted"
+                >
                   <Checkbox
+                    id="enable-embedding"
                     checked={field.value}
                     onCheckedChange={field.onChange}
                     className="mt-0.5"
                   />
                   <div className="flex-1">
-                    <span className="text-sm font-medium block">启用嵌入以供搜索</span>
+                    <span className="text-sm font-medium block">{t.sources.enableEmbedding}</span>
                     <p className="text-xs text-muted-foreground mt-1">
-                      允许在向量搜索和 AI 查询中找到此资源
+                      {t.sources.embeddingDesc}
                     </p>
                   </div>
                 </label>
@@ -89,10 +95,10 @@ export function ProcessingStep({
               <div className="flex items-start gap-3">
                 <div className="w-4 h-4 bg-primary rounded-full mt-0.5 flex-shrink-0"></div>
                 <div className="flex-1">
-                  <span className="text-sm font-medium block text-primary">已自动启用嵌入</span>
+                  <span className="text-sm font-medium block text-primary">{t.sources.embeddingAlways}</span>
                   <p className="text-xs text-primary mt-1">
-                    您的设置已配置为始终嵌入内容以进行向量搜索。
-                    您可以在 <span className="font-medium">设置</span> 中更改此项。
+                    {t.sources.embeddingAlwaysDesc}
+                    {t.sources.changeInSettings} <span className="font-medium">{t.navigation.settings}</span>.
                   </p>
                 </div>
               </div>
@@ -104,10 +110,10 @@ export function ProcessingStep({
               <div className="flex items-start gap-3">
                 <div className="w-4 h-4 bg-muted-foreground rounded-full mt-0.5 flex-shrink-0"></div>
                 <div className="flex-1">
-                  <span className="text-sm font-medium block text-foreground">嵌入已禁用</span>
+                  <span className="text-sm font-medium block text-foreground">{t.sources.embeddingNever}</span>
                   <p className="text-xs text-muted-foreground mt-1">
-                    您的设置已配置为跳过嵌入。此资源将无法使用向量搜索。
-                    您可以在 <span className="font-medium">设置</span> 中更改此项。
+                    {t.sources.embeddingNeverDesc}
+                    {t.sources.changeInSettings} <span className="font-medium">{t.navigation.settings}</span>.
                   </p>
                 </div>
               </div>

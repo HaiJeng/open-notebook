@@ -23,6 +23,7 @@ import { useTransformations } from '@/lib/hooks/use-transformations'
 import { useCreateSource } from '@/lib/hooks/use-sources'
 import { useSettings } from '@/lib/hooks/use-settings'
 import { CreateSourceRequest } from '@/lib/types/api'
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 const MAX_BATCH_SIZE = 50
 
@@ -51,7 +52,7 @@ const createSourceSchema = z.object({
   }
   return true
 }, {
-  message: '请为所选资源类型提供所需的内容',
+  message: 'Please provide the required content for the selected source type',
   path: ['type'],
 }).refine((data) => {
   // Make title mandatory for text sources
@@ -60,7 +61,7 @@ const createSourceSchema = z.object({
   }
   return true
 }, {
-  message: '文本资源必须有标题',
+  message: 'Title is required for text sources',
   path: ['title'],
 })
 
@@ -71,12 +72,6 @@ interface AddSourceDialogProps {
   onOpenChange: (open: boolean) => void
   defaultNotebookId?: string
 }
-
-const WIZARD_STEPS: readonly WizardStep[] = [
-  { number: 1, title: '资源与内容', description: '选择类型并添加内容' },
-  { number: 2, title: '组织', description: '选择笔记本' },
-  { number: 3, title: '处理', description: '选择转换和选项' },
-]
 
 interface ProcessingState {
   message: string
@@ -95,6 +90,14 @@ export function AddSourceDialog({
   onOpenChange, 
   defaultNotebookId 
 }: AddSourceDialogProps) {
+  const { t } = useTranslation()
+
+  const WIZARD_STEPS: readonly WizardStep[] = [
+    { number: 1, title: t.sources.addSource, description: t.sources.processDescription },
+    { number: 2, title: t.navigation.notebooks, description: t.notebooks.searchPlaceholder },
+    { number: 3, title: t.navigation.process, description: t.sources.processDescription },
+  ]
+
   // Simplified state management
   const [currentStep, setCurrentStep] = useState(1)
   const [processing, setProcessing] = useState(false)
@@ -385,29 +388,29 @@ export function AddSourceDialog({
 
       if (isBatchMode) {
         // Batch submission
-        setProcessingStatus({ message: `正在处理 ${itemCount} 个资源...` })
+        setProcessingStatus({ message: t.sources.processingFiles })
         const results = await submitBatch(data)
-       
+
         // Show summary toast
         if (results.failed === 0) {
-          toast.success(`成功创建了 ${results.success} 个资源`)
+          toast.success(t.sources.batchSuccess.replace('{count}', results.success.toString()))
         } else if (results.success === 0) {
-          toast.error(`创建所有 ${results.failed} 个资源失败`)
+          toast.error(t.sources.batchFailed.replace('{count}', results.failed.toString()))
         } else {
-          toast.warning(`${results.success} 个成功，${results.failed} 个失败`)
+          toast.warning(t.sources.batchPartial.replace('{success}', results.success.toString()).replace('{failed}', results.failed.toString()))
         }
 
         handleClose()
       } else {
         // Single source submission
-        setProcessingStatus({ message: '正在提交资源进行处理...' })
+        setProcessingStatus({ message: t.sources.submittingSource })
         await submitSingleSource(data)
         handleClose()
       }
     } catch (error) {
       console.error('Error creating source:', error)
       setProcessingStatus({
-        message: '创建资源时出错。请重试。',
+        message: t.common.error,
       })
       timeoutRef.current = setTimeout(() => {
         setProcessing(false)
@@ -457,21 +460,21 @@ export function AddSourceDialog({
         <DialogContent className="sm:max-w-[500px]" showCloseButton={true}>
           <DialogHeader>
             <DialogTitle>
-              {batchProgress ? '正在批量处理' : '正在处理资源'}
+              {batchProgress ? t.sources.processingFiles : t.sources.statusProcessing}
             </DialogTitle>
             <DialogDescription>
               {batchProgress
-                ? `正在处理 ${batchProgress.total} 个资源。这可能需要一些时间。`
-                : '您的资源正在处理中。这可能需要一些时间。'
+                ? t.sources.processingBatchSources.replace('{count}', batchProgress.total.toString())
+                : t.sources.processingSource
               }
             </DialogDescription>
           </DialogHeader>
-           
+
           <div className="space-y-4 py-4">
             <div className="flex items-center gap-3">
               <LoaderIcon className="h-5 w-5 animate-spin text-primary" />
               <span className="text-sm text-muted-foreground">
-                {processingStatus?.message || '处理中...'}
+                {processingStatus?.message || t.common.processing}
               </span>
             </div>
 
@@ -489,23 +492,23 @@ export function AddSourceDialog({
                   <div className="flex items-center gap-4">
                     <span className="flex items-center gap-1.5 text-green-600">
                       <CheckCircleIcon className="h-4 w-4" />
-                      {batchProgress.completed} 已完成
+                      {batchProgress.completed} {t.common.completed}
                     </span>
                     {batchProgress.failed > 0 && (
                       <span className="flex items-center gap-1.5 text-destructive">
                         <XCircleIcon className="h-4 w-4" />
-                        {batchProgress.failed} 已失败
+                        {batchProgress.failed} {t.common.failed}
                       </span>
                     )}
                   </div>
-                  <span className="text-muted-foreground">
+                   <span className="text-muted-foreground">
                     {batchProgress.completed + batchProgress.failed} / {batchProgress.total}
                   </span>
                 </div>
 
                 {batchProgress.currentItem && (
                   <p className="text-xs text-muted-foreground truncate">
-                    当前：{batchProgress.currentItem}
+                    {t.common.current}: {batchProgress.currentItem}
                   </p>
                 )}
               </>
@@ -532,9 +535,9 @@ export function AddSourceDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[700px] p-0">
         <DialogHeader className="px-6 pt-6 pb-0">
-          <DialogTitle>添加新资源</DialogTitle>
+          <DialogTitle>{t.sources.addNew}</DialogTitle>
           <DialogDescription>
-            从链接、上传或文本向您的笔记本添加内容。
+            {t.sources.processDescription}
           </DialogDescription>
         </DialogHeader>
 
@@ -586,9 +589,9 @@ export function AddSourceDialog({
               variant="outline" 
               onClick={handleClose}
             >
-              取消
+              {t.common.cancel}
             </Button>
-             
+
             <div className="flex gap-2">
               {currentStep > 1 && (
                 <Button
@@ -596,10 +599,10 @@ export function AddSourceDialog({
                   variant="outline"
                   onClick={handlePrevStep}
                 >
-                  上一步
+                  {t.common.back}
                 </Button>
               )}
-             
+
               {/* Show Next button on steps 1 and 2, styled as outline/secondary */}
               {currentStep < 3 && (
                 <Button
@@ -608,17 +611,17 @@ export function AddSourceDialog({
                   onClick={(e) => handleNextStep(e)}
                   disabled={!currentStepValid}
                 >
-                  下一步
+                  {t.common.next}
                 </Button>
               )}
-             
+
               {/* Show Done button on all steps, styled as primary */}
               <Button
                 type="submit"
                 disabled={!currentStepValid || createSource.isPending}
                 className="min-w-[120px]"
               >
-                {createSource.isPending ? '正在创建...' : '完成'}
+                {createSource.isPending ? t.common.adding : t.common.done}
               </Button>
             </div>
           </div>

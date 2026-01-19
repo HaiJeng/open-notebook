@@ -11,6 +11,7 @@ import { Play, Loader2 } from 'lucide-react'
 import { Transformation } from '@/lib/types/transformations'
 import { useExecuteTransformation } from '@/lib/hooks/use-transformations'
 import { ModelSelector } from '@/components/common/ModelSelector'
+import { useTranslation } from '@/lib/hooks/use-translation'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -20,6 +21,7 @@ interface TransformationPlaygroundProps {
 }
 
 export function TransformationPlayground({ transformations, selectedTransformation }: TransformationPlaygroundProps) {
+  const { t } = useTranslation()
   const [selectedId, setSelectedId] = useState(selectedTransformation?.id || '')
   const [inputText, setInputText] = useState('')
   const [modelId, setModelId] = useState('')
@@ -47,18 +49,18 @@ export function TransformationPlayground({ transformations, selectedTransformati
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>操练场</CardTitle>
+          <CardTitle>{t.transformations.playground}</CardTitle>
           <CardDescription>
-            在将转换应用于资源之前，先在示例文本上进行测试
+            {t.transformations.desc}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="transformation">转换</Label>
-              <Select value={selectedId} onValueChange={setSelectedId}>
+              <Label htmlFor="transformation">{t.navigation.transformation}</Label>
+              <Select name="transformation" value={selectedId} onValueChange={setSelectedId}>
                 <SelectTrigger id="transformation">
-                  <SelectValue placeholder="选择转换" />
+                  <SelectValue placeholder={t.transformations.selectToStart} />
                 </SelectTrigger>
                 <SelectContent>
                   {transformations?.map((transformation) => (
@@ -72,22 +74,24 @@ export function TransformationPlayground({ transformations, selectedTransformati
 
             <div>
               <ModelSelector
-                label="模型"
+                label={t.transformations.model}
+                name="model"
                 modelType="language"
                 value={modelId}
                 onChange={setModelId}
-                placeholder="选择模型"
+                placeholder={t.transformations.selectModel}
               />
             </div>
           </div>
 
           <div>
-            <Label htmlFor="input">输入文本</Label>
+            <Label htmlFor="input">{t.transformations.inputLabel}</Label>
             <Textarea
               id="input"
+              name="input"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="输入一些要转换的文本..."
+              placeholder={t.transformations.inputPlaceholder}
               rows={8}
               className="font-mono text-sm"
             />
@@ -102,12 +106,12 @@ export function TransformationPlayground({ transformations, selectedTransformati
               {executeTransformation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  运行中...
+                  {t.transformations.running}
                 </>
               ) : (
                 <>
                   <Play className="h-4 w-4 mr-2" />
-                  运行转换
+                  {t.transformations.runTest}
                 </>
               )}
             </Button>
@@ -115,7 +119,7 @@ export function TransformationPlayground({ transformations, selectedTransformati
 
           {output && (
             <div className="space-y-2">
-              <Label>输出</Label>
+              <span className="text-sm font-medium leading-none">{t.transformations.outputLabel}</span>
               <Card>
                 <ScrollArea className="h-[400px]">
                   <CardContent className="pt-6">

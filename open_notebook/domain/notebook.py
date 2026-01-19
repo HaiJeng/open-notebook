@@ -1,4 +1,6 @@
 import asyncio
+import os
+from pathlib import Path
 from typing import Any, ClassVar, Dict, List, Literal, Optional, Tuple, Union
 
 from loguru import logger
@@ -201,7 +203,9 @@ class Source(ObjectModel):
 
             # Extract execution metadata if available
             result = getattr(status_result, "result", None)
-            execution_metadata = result.get("execution_metadata", {}) if isinstance(result, dict) else {}
+            execution_metadata = (
+                result.get("execution_metadata", {}) if isinstance(result, dict) else {}
+            )
 
             return {
                 "status": status_result.status,
@@ -290,11 +294,11 @@ class Source(ObjectModel):
             # 2. Split text into chunks
             # 3. Submit each chunk as an embed_chunk job
             command_id = submit_command(
-                "open_notebook",      # app name
-                "vectorize_source",   # command name
+                "open_notebook",  # app name
+                "vectorize_source",  # command name
                 {
                     "source_id": str(self.id),
-                }
+                },
             )
 
             command_id_str = str(command_id)
@@ -306,7 +310,9 @@ class Source(ObjectModel):
             return command_id_str
 
         except Exception as e:
-            logger.error(f"Failed to submit vectorization job for source {self.id}: {e}")
+            logger.error(
+                f"Failed to submit vectorization job for source {self.id}: {e}"
+            )
             logger.exception(e)
             raise DatabaseOperationError(e)
 
@@ -349,6 +355,28 @@ class Source(ObjectModel):
             data["command"] = ensure_record_id(data["command"])
 
         return data
+
+    async def delete(self) -> bool:
+        """Delete source and clean up associated file if it exists."""
+        # Clean up uploaded file if it exists
+        if self.asset and self.asset.file_path:
+            file_path = Path(self.asset.file_path)
+            if file_path.exists():
+                try:
+                    os.unlink(file_path)
+                    logger.info(f"Deleted file for source {self.id}: {file_path}")
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to delete file {file_path} for source {self.id}: {e}. "
+                        "Continuing with database deletion."
+                    )
+            else:
+                logger.debug(
+                    f"File {file_path} not found for source {self.id}, skipping cleanup"
+                )
+
+        # Call parent delete to remove database record
+        return await super().delete()
 
 
 class Note(ObjectModel):

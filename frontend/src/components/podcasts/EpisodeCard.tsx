@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
+import { getDateLocale } from '@/lib/utils/date-locale'
 import { InfoIcon, Trash2 } from 'lucide-react'
 
 import { resolvePodcastAssetUrl } from '@/lib/api/podcasts'
@@ -31,6 +32,8 @@ import {
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useTranslation } from '@/lib/hooks/use-translation'
+import { TranslationKeys } from '@/lib/locales'
 
 interface EpisodeCardProps {
   episode: PodcastEpisode
@@ -38,51 +41,52 @@ interface EpisodeCardProps {
   deleting?: boolean
 }
 
-const STATUS_META: Record<
+const getSTATUS_META = (t: TranslationKeys): Record<
   EpisodeStatus | 'unknown',
   { label: string; className: string }
-> = {
+> => ({
   running: {
-    label: '处理中',
+    label: t.podcasts.processingLabel,
     className: 'bg-amber-100 text-amber-800 border-amber-200',
   },
   processing: {
-    label: '处理中',
+    label: t.podcasts.processingLabel,
     className: 'bg-amber-100 text-amber-800 border-amber-200',
   },
   completed: {
-    label: '已完成',
+    label: t.podcasts.completedLabel,
     className: 'bg-emerald-100 text-emerald-800 border-emerald-200',
   },
   failed: {
-    label: '失败',
+    label: t.podcasts.failedLabel,
     className: 'bg-red-100 text-red-800 border-red-200',
   },
   error: {
-    label: '失败',
+    label: t.podcasts.failedLabel,
     className: 'bg-red-100 text-red-800 border-red-200',
   },
   pending: {
-    label: '待处理',
+    label: t.podcasts.pendingLabel,
     className: 'bg-sky-100 text-sky-800 border-sky-200',
   },
   submitted: {
-    label: '待处理',
+    label: t.podcasts.pendingLabel,
     className: 'bg-sky-100 text-sky-800 border-sky-200',
   },
   unknown: {
-    label: '未知',
+    label: t.common.unknown,
     className: 'bg-muted text-muted-foreground border-transparent',
   },
-}
+})
 
 function StatusBadge({ status }: { status?: EpisodeStatus | null }) {
+  const { t } = useTranslation()
   // Don't show badge for completed episodes
   if (status === 'completed') {
     return null
   }
 
-  const meta = STATUS_META[status ?? 'unknown']
+  const meta = getSTATUS_META(t)[status ?? 'unknown']
   return (
     <Badge
       variant="outline"
@@ -133,6 +137,7 @@ function extractTranscriptEntries(transcript: unknown): TranscriptEntry[] {
 }
 
 export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
+  const { t, language } = useTranslation()
   const [audioSrc, setAudioSrc] = useState<string | undefined>()
   const [audioError, setAudioError] = useState<string | null>(null)
   const [detailsOpen, setDetailsOpen] = useState(false)
@@ -183,7 +188,7 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
         setAudioSrc(revokeUrl)
       } catch (error) {
         console.error('Unable to load podcast audio', error)
-        setAudioError('音频不可用')
+        setAudioError(t.podcasts.audioUnavailable)
         setAudioSrc(undefined)
       }
     }
@@ -195,12 +200,17 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
         URL.revokeObjectURL(revokeUrl)
       }
     }
-  }, [episode.audio_url, episode.audio_file])
+  }, [episode.audio_url, episode.audio_file, t])
 
-  const createdLabel = episode.created
+  const distance = episode.created
     ? formatDistanceToNow(new Date(episode.created), {
         addSuffix: true,
+        locale: getDateLocale(language),
       })
+    : null
+
+  const createdLabel = distance
+    ? t.podcasts.created.replace('{time}', distance)
     : null
 
   const handleDelete = () => {
@@ -219,23 +229,23 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
               <StatusBadge status={episode.job_status} />
             </div>
             <p className="text-xs text-muted-foreground">
-              配置: {episode.episode_profile?.name ?? '未知'}
-              {createdLabel ? ` • 创建于 ${createdLabel}` : ''}
+              {t.podcasts.profile}: {episode.episode_profile?.name || t.common.unknown}
+              {createdLabel ? ` • ${createdLabel}` : ''}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
-                  <InfoIcon className="mr-2 h-4 w-4" /> 详情
+                  <InfoIcon className="mr-2 h-4 w-4" /> {t.podcasts.details}
                 </Button>
               </DialogTrigger>
               <DialogContent className="w-[min(90vw,720px)] max-h-[85vh] overflow-hidden">
                 <DialogHeader>
                   <DialogTitle>{episode.name}</DialogTitle>
                   <DialogDescription>
-                    {episode.episode_profile?.name ?? '未知配置'}
-                    {createdLabel ? ` • 创建于 ${createdLabel}` : ''}
+                    {episode.episode_profile?.name || t.common.unknown}
+                    {createdLabel ? ` • ${createdLabel}` : ''}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 overflow-hidden">
@@ -247,19 +257,19 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
 
                   <Tabs defaultValue="summary" className="h-[60vh] flex flex-col">
                     <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="summary">摘要</TabsTrigger>
-                      <TabsTrigger value="outline">大纲</TabsTrigger>
-                      <TabsTrigger value="transcript">转录</TabsTrigger>
+                      <TabsTrigger value="summary">{t.podcasts.summaryTab}</TabsTrigger>
+                      <TabsTrigger value="outline">{t.podcasts.outlineTab}</TabsTrigger>
+                      <TabsTrigger value="transcript">{t.podcasts.transcriptTab}</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="summary" className="flex-1 overflow-hidden">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6">
                           <section className="space-y-2">
-                            <h4 className="text-sm font-semibold text-foreground">剧集配置</h4>
+                            <h4 className="text-sm font-semibold text-foreground">{t.podcasts.episodeProfile}</h4>
                             <div className="grid gap-2 text-sm md:grid-cols-2">
                               <div>
-                                <p className="text-muted-foreground">大纲模型</p>
+                                <p className="text-muted-foreground">{t.podcasts.outlineModel}</p>
                                 <p>
                                   {episode.episode_profile?.outline_provider ?? '—'} /
                                   {' '}
@@ -267,7 +277,7 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
                                 </p>
                               </div>
                               <div>
-                                <p className="text-muted-foreground">转录模型</p>
+                                <p className="text-muted-foreground">{t.podcasts.transcriptModel}</p>
                                 <p>
                                   {episode.episode_profile?.transcript_provider ?? '—'} /
                                   {' '}
@@ -275,7 +285,7 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
                                 </p>
                               </div>
                               <div>
-                                <p className="text-muted-foreground">段落数</p>
+                                <p className="text-muted-foreground">{t.podcasts.segments}</p>
                                 <p>{episode.episode_profile?.num_segments ?? '—'}</p>
                               </div>
                             </div>
@@ -287,7 +297,7 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
                           </section>
 
                           <section className="space-y-2">
-                            <h4 className="text-sm font-semibold text-foreground">演讲者配置</h4>
+                            <h4 className="text-sm font-semibold text-foreground">{t.podcasts.speakerProfile}</h4>
                             <p className="text-xs text-muted-foreground">
                               {episode.speaker_profile?.tts_provider ?? '—'} /{' '}
                               {episode.speaker_profile?.tts_model ?? '—'}
@@ -298,12 +308,12 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
                                 className="rounded-md border bg-muted/20 p-3 text-xs"
                               >
                                 <p className="font-semibold text-foreground">{speaker.name}</p>
-                                <p className="text-muted-foreground">声音 ID: {speaker.voice_id}</p>
+                                <p className="text-muted-foreground">{t.podcasts.voiceId}: {speaker.voice_id}</p>
                                 <p className="mt-2 whitespace-pre-wrap text-muted-foreground">
-                                  <span className="font-semibold">背景故事:</span> {speaker.backstory}
+                                  <span className="font-semibold">{t.podcasts.backstory}:</span> {speaker.backstory}
                                 </p>
                                 <p className="mt-2 whitespace-pre-wrap text-muted-foreground">
-                                  <span className="font-semibold">性格特征:</span> {speaker.personality}
+                                  <span className="font-semibold">{t.podcasts.personality}:</span> {speaker.personality}
                                 </p>
                               </div>
                             ))}
@@ -311,7 +321,7 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
 
                           {episode.briefing ? (
                             <section className="space-y-2">
-                              <h4 className="text-sm font-semibold text-foreground">简报</h4>
+                              <h4 className="text-sm font-semibold text-foreground">{t.podcasts.briefing}</h4>
                               <div className="rounded border bg-muted/30 p-3 text-xs whitespace-pre-wrap">
                                 {episode.briefing}
                               </div>
@@ -328,17 +338,17 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
                             {outlineSegments.map((segment, index) => (
                               <div key={index} className="rounded border bg-muted/20 p-3 text-xs space-y-1">
                                 <div className="flex items-center justify-between gap-2">
-                                  <p className="font-semibold text-foreground">{segment.name ?? `段落 ${index + 1}`}</p>
+                                  <p className="font-semibold text-foreground">{segment.name ?? `${t.podcasts.segment} ${index + 1}`}</p>
                                   {segment.size ? (
                                     <Badge variant="outline" className="text-[10px] uppercase tracking-wide">{segment.size}</Badge>
                                   ) : null}
                                 </div>
-                                <p className="text-muted-foreground whitespace-pre-wrap">{segment.description ?? '暂无描述。'}</p>
+                                <p className="text-muted-foreground whitespace-pre-wrap">{segment.description ?? t.podcasts.noDescription}</p>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <p className="text-xs text-muted-foreground">暂无大纲。</p>
+                          <p className="text-xs text-muted-foreground">{t.podcasts.noOutline}</p>
                         )}
                       </ScrollArea>
                     </TabsContent>
@@ -348,12 +358,12 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
                         {transcriptEntries.length > 0 ? (
                           transcriptEntries.map((entry, index) => (
                             <div key={index} className="rounded border bg-muted/20 p-3 text-xs space-y-1">
-                              <p className="font-semibold text-foreground">{entry.speaker ?? '演讲者'}</p>
+                              <p className="font-semibold text-foreground">{entry.speaker ?? t.podcasts.speaker}</p>
                               <p className="text-muted-foreground whitespace-pre-wrap">{entry.dialogue ?? ''}</p>
                             </div>
                           ))
                         ) : (
-                          <p className="text-xs text-muted-foreground">暂无转录内容。</p>
+                          <p className="text-xs text-muted-foreground">{t.podcasts.noTranscript}</p>
                         )}
                       </ScrollArea>
                     </TabsContent>
@@ -365,20 +375,20 @@ export function EpisodeCard({ episode, onDelete, deleting }: EpisodeCardProps) {
               <AlertDialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="text-destructive">
                   <Trash2 className="mr-2 h-4 w-4" />
-                  删除
+                  {t.podcasts.delete}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>删除剧集？</AlertDialogTitle>
+                  <AlertDialogTitle>{t.podcasts.deleteEpisodeTitle}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    这将永久移除“{episode.name}”及其音频文件。
+                    {t.podcasts.deleteEpisodeDesc.replace('{name}', episode.name)}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>取消</AlertDialogCancel>
+                  <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
                   <AlertDialogAction onClick={handleDelete} disabled={deleting}>
-                    {deleting ? '删除中…' : '删除'}
+                    {deleting ? t.podcasts.deleting : t.podcasts.delete}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

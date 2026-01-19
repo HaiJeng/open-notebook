@@ -22,6 +22,7 @@ import { useModalManager } from '@/lib/hooks/use-modal-manager'
 import { ContextMode } from '../[id]/page'
 import { CollapsibleColumn, createCollapseButton } from '@/components/notebooks/CollapsibleColumn'
 import { useNotebookColumnsStore } from '@/lib/stores/notebook-columns-store'
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 interface SourcesColumnProps {
   sources?: SourceListResponse[]
@@ -48,6 +49,7 @@ export function SourcesColumn({
   isFetchingNextPage,
   fetchNextPage,
 }: SourcesColumnProps) {
+  const { t } = useTranslation()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [addExistingDialogOpen, setAddExistingDialogOpen] = useState(false)
@@ -64,8 +66,8 @@ export function SourcesColumn({
   // Collapsible column state
   const { sourcesCollapsed, toggleSources } = useNotebookColumnsStore()
   const collapseButton = useMemo(
-    () => createCollapseButton(toggleSources, '资源'),
-    [toggleSources]
+    () => createCollapseButton(toggleSources, t.navigation.sources),
+    [toggleSources, t.navigation.sources]
   )
 
   // Scroll container ref for infinite scroll
@@ -149,29 +151,29 @@ export function SourcesColumn({
         isCollapsed={sourcesCollapsed}
         onToggle={toggleSources}
         collapsedIcon={FileText}
-        collapsedLabel="资源"
+        collapsedLabel={t.navigation.sources}
       >
         <Card className="h-full flex flex-col flex-1 overflow-hidden">
           <CardHeader className="pb-3 flex-shrink-0">
             <div className="flex items-center justify-between gap-2">
-              <CardTitle className="text-lg">资源</CardTitle>
+              <CardTitle className="text-lg">{t.navigation.sources}</CardTitle>
               <div className="flex items-center gap-2">
                 <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
                   <DropdownMenuTrigger asChild>
                     <Button size="sm">
                       <Plus className="h-4 w-4 mr-2" />
-                      添加资源
+                      {t.sources.addSource}
                       <ChevronDown className="h-4 w-4 ml-2" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => { setDropdownOpen(false); setAddDialogOpen(true); }}>
                       <Plus className="h-4 w-4 mr-2" />
-                      添加新资源
+                      {t.sources.addSource}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => { setDropdownOpen(false); setAddExistingDialogOpen(true); }}>
                       <Link2 className="h-4 w-4 mr-2" />
-                      添加现有资源
+                      {t.sources.addExistingTitle}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -188,8 +190,8 @@ export function SourcesColumn({
             ) : !sources || sources.length === 0 ? (
               <EmptyState
                 icon={FileText}
-                title="暂无资源"
-                description="添加您的第一个资源，开始构建您的知识库。"
+                title={t.sources.noSourcesYet}
+                description={t.sources.createFirstSource}
               />
             ) : (
               <div className="space-y-3">
@@ -238,9 +240,9 @@ export function SourcesColumn({
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title="删除资源"
-        description="您确定要删除此资源吗？此操作无法撤销。"
-        confirmText="删除"
+        title={t.sources.delete}
+        description={t.sources.deleteConfirm}
+        confirmText={t.common.delete}
         onConfirm={handleDeleteConfirm}
         isLoading={deleteSource.isPending}
         confirmVariant="destructive"
@@ -249,9 +251,9 @@ export function SourcesColumn({
       <ConfirmDialog
         open={removeDialogOpen}
         onOpenChange={setRemoveDialogOpen}
-        title="从笔记本中移除资源"
-        description="您确定要从笔记本中移除此资源吗？资源本身不会被删除。"
-        confirmText="移除"
+        title={t.sources.removeFromNotebook}
+        description={t.sources.removeConfirm}
+        confirmText={t.common.remove}
         onConfirm={handleRemoveConfirm}
         isLoading={removeFromNotebook.isPending}
         confirmVariant="default"

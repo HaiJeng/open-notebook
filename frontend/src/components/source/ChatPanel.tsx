@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useId } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -22,6 +22,7 @@ import { MessageActions } from '@/components/source/MessageActions'
 import { convertReferencesToCompactMarkdown, createCompactReferenceLinkComponent } from '@/lib/utils/source-references'
 import { useModalManager } from '@/lib/hooks/use-modal-manager'
 import { toast } from 'sonner'
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 interface NotebookContextStats {
   sourcesInsights: number
@@ -69,11 +70,13 @@ export function ChatPanel({
   onDeleteSession,
   onUpdateSession,
   loadingSessions = false,
-  title = '与资源对话',
+  title,
   contextType = 'source',
   notebookContextStats,
   notebookId
 }: ChatPanelProps) {
+  const { t } = useTranslation()
+  const chatInputId = useId()
   const [input, setInput] = useState('')
   const [sessionManagerOpen, setSessionManagerOpen] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
@@ -89,8 +92,7 @@ export function ChatPanel({
       // The modal component itself will handle displaying "not found" states.
       // This try-catch is here for future enhancements or unexpected errors.
     } catch {
-      const typeLabel = type === 'source_insight' ? '见解' : (type === 'source' ? '资源' : '笔记')
-      toast.error(`找不到该${typeLabel}`)
+      toast.error(t.common.noResults)
     }
   }
 
@@ -128,7 +130,7 @@ export function ChatPanel({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Bot className="h-5 w-5" />
-            {title}
+            {title || (contextType === 'source' ? t.chat.chatWith.replace('{name}', t.navigation.sources) : t.chat.chatWith.replace('{name}', t.common.notebook))}
           </CardTitle>
           {onSelectSession && onCreateSession && onDeleteSession && (
             <Dialog open={sessionManagerOpen} onOpenChange={setSessionManagerOpen}>
@@ -140,10 +142,10 @@ export function ChatPanel({
                 disabled={loadingSessions}
               >
                 <Clock className="h-4 w-4" />
-                <span className="text-xs">会话</span>
+                <span className="text-xs">{t.chat.sessions}</span>
               </Button>
               <DialogContent className="sm:max-w-[420px] p-0 overflow-hidden">
-                <DialogTitle className="sr-only">对话会话</DialogTitle>
+                <DialogTitle className="sr-only">{t.chat.sessionsTitle}</DialogTitle>
                 <SessionManager
                   sessions={sessions}
                   currentSessionId={currentSessionId ?? null}
@@ -168,9 +170,9 @@ export function ChatPanel({
               <div className="text-center text-muted-foreground py-8">
                 <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p className="text-sm">
-                  开始关于此{contextType === 'source' ? '资源' : '笔记本'}的对话
+                  {t.chat.startConversation.replace('{type}', contextType === 'source' ? t.navigation.sources : t.common.notebook)}
                 </p>
-                <p className="text-xs mt-2">通过提问更好地理解内容</p>
+                <p className="text-xs mt-2">{t.chat.askQuestions}</p>
               </div>
             ) : (
               messages.map((message) => (
@@ -187,7 +189,7 @@ export function ChatPanel({
                       </div>
                     </div>
                   )}
-                  <div className="flex flex-col gap-2 max-w-[80%] min-w-0">
+                  <div className="flex flex-col gap-2 max-w-[80%]">
                     <div
                       className={`rounded-lg px-4 py-2 ${
                         message.type === 'human'
@@ -244,19 +246,19 @@ export function ChatPanel({
               {contextIndicators.sources?.length > 0 && (
                 <Badge variant="outline" className="gap-1">
                   <FileText className="h-3 w-3" />
-                  {contextIndicators.sources.length} 个资源
+                  {contextIndicators.sources.length} {t.navigation.sources}
                 </Badge>
               )}
               {contextIndicators.insights?.length > 0 && (
                 <Badge variant="outline" className="gap-1">
                   <Lightbulb className="h-3 w-3" />
-                  {contextIndicators.insights.length} 个见解
+                  {contextIndicators.insights.length} {contextIndicators.insights.length === 1 ? t.common.insight : t.common.insights}
                 </Badge>
               )}
               {contextIndicators.notes?.length > 0 && (
                 <Badge variant="outline" className="gap-1">
                   <StickyNote className="h-3 w-3" />
-                  {contextIndicators.notes.length} 条笔记
+                  {contextIndicators.notes.length} {contextIndicators.notes.length === 1 ? t.common.note : t.common.notes}
                 </Badge>
               )}
             </div>
@@ -279,7 +281,7 @@ export function ChatPanel({
           {/* Model selector */}
           {onModelChange && (
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">模型</span>
+              <span className="text-xs text-muted-foreground">{t.chat.model}</span>
               <ModelSelector
                 currentModel={modelOverride}
                 onModelChange={onModelChange}
@@ -290,10 +292,13 @@ export function ChatPanel({
 
           <div className="flex gap-2 items-end">
             <Textarea
+              id={chatInputId}
+              name="chat-message"
+              autoComplete="off"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={`询问关于此${contextType === 'source' ? '资源' : '笔记本'}的问题... (${keyHint} 发送)`}
+              placeholder={`${t.chat.sendPlaceholder} (${t.chat.pressToSend.replace('{key}', keyHint)})`}
               disabled={isStreaming}
               className="flex-1 min-h-[40px] max-h-[100px] resize-none py-2 px-3"
               rows={1}
@@ -327,14 +332,15 @@ function AIMessageContent({
   content: string
   onReferenceClick: (type: string, id: string) => void
 }) {
+  const { t } = useTranslation()
   // Convert references to compact markdown with numbered citations
-  const markdownWithCompactRefs = convertReferencesToCompactMarkdown(content)
+  const markdownWithCompactRefs = convertReferencesToCompactMarkdown(content, t.common.references)
 
   // Create custom link component for compact references
   const LinkComponent = createCompactReferenceLinkComponent(onReferenceClick)
 
   return (
-    <div className="prose prose-sm prose-neutral dark:prose-invert max-w-full break-words break-all prose-headings:font-semibold prose-a:text-blue-600 prose-a:break-all prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-p:mb-4 prose-p:leading-7 prose-li:mb-2">
+    <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none break-words prose-headings:font-semibold prose-a:text-blue-600 prose-a:break-all prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-p:mb-4 prose-p:leading-7 prose-li:mb-2">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -349,18 +355,6 @@ function AIMessageContent({
           li: ({ children }) => <li className="mb-1">{children}</li>,
           ul: ({ children }) => <ul className="mb-4 space-y-1">{children}</ul>,
           ol: ({ children }) => <ol className="mb-4 space-y-1">{children}</ol>,
-          // 代码块：限制最大宽度，内部横向滚动，不撑破气泡
-          pre: ({ children }) => (
-            <pre className="max-w-full overflow-x-auto">
-              {children}
-            </pre>
-          ),
-          // 行内代码：长内容也允许折行
-          code: ({ children }) => (
-            <code className="break-words whitespace-pre-wrap">
-              {children}
-            </code>
-          ),
           table: ({ children }) => (
             <div className="my-4 overflow-x-auto">
               <table className="min-w-full border-collapse border border-border">{children}</table>

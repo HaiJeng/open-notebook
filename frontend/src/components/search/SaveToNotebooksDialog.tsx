@@ -15,6 +15,7 @@ import { useNotebooks } from '@/lib/hooks/use-notebooks'
 import { useCreateNote } from '@/lib/hooks/use-notes'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { toast } from 'sonner'
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 interface SaveToNotebooksDialogProps {
   open: boolean
@@ -29,6 +30,7 @@ export function SaveToNotebooksDialog({
   question,
   answer
 }: SaveToNotebooksDialogProps) {
+  const { t } = useTranslation()
   const [selectedNotebooks, setSelectedNotebooks] = useState<string[]>([])
   const { data: notebooks, isLoading } = useNotebooks(false) // false = not archived
   const createNote = useCreateNote()
@@ -43,7 +45,7 @@ export function SaveToNotebooksDialog({
 
   const handleSave = async () => {
     if (selectedNotebooks.length === 0) {
-      toast.error('请至少选择一个笔记本')
+      toast.error(t.searchPage.selectNotebook)
       return
     }
 
@@ -58,11 +60,11 @@ export function SaveToNotebooksDialog({
         })
       }
 
-      toast.success(`答案已保存到 ${selectedNotebooks.length} 个笔记本`)
+      toast.success(t.searchPage.saveSuccess)
       setSelectedNotebooks([])
       onOpenChange(false)
     } catch {
-      toast.error('保存答案失败')
+      toast.error(t.searchPage.saveError)
     }
   }
 
@@ -76,9 +78,9 @@ export function SaveToNotebooksDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>保存到笔记本</DialogTitle>
+          <DialogTitle>{t.searchPage.saveToNotebooks}</DialogTitle>
           <DialogDescription>
-            选择一个或多个笔记本以保存此答案
+            {t.searchPage.selectNotebook}
           </DialogDescription>
         </DialogHeader>
 
@@ -92,14 +94,14 @@ export function SaveToNotebooksDialog({
               items={notebookItems}
               selectedIds={selectedNotebooks}
               onToggle={handleToggle}
-              emptyMessage="未找到笔记本。请先创建一个笔记本。"
+              emptyMessage={t.sources.noNotebooksFound}
             />
           )}
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            取消
+            {t.common.cancel}
           </Button>
           <Button
             onClick={handleSave}
@@ -108,10 +110,10 @@ export function SaveToNotebooksDialog({
             {createNote.isPending ? (
               <>
                 <LoadingSpinner size="sm" className="mr-2" />
-                保存中...
+                {t.searchPage.saving}
               </>
             ) : (
-              `保存到 ${selectedNotebooks.length || ''} 个笔记本`
+              t.searchPage.saveToNotebook
             )}
           </Button>
         </DialogFooter>

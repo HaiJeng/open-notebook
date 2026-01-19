@@ -16,6 +16,8 @@ import {
   Clock
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import { getDateLocale } from '@/lib/utils/date-locale'
+import { useTranslation } from '@/lib/hooks/use-translation'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,6 +50,7 @@ export function SessionManager({
   onDeleteSession,
   loadingSessions
 }: SessionManagerProps) {
+  const { t, language } = useTranslation()
   const [isCreating, setIsCreating] = useState(false)
   const [newSessionTitle, setNewSessionTitle] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -57,12 +60,13 @@ export function SessionManager({
   const { data: models } = useModels()
 
   // Helper to get model name from ID
+  const customModelLabel = t.common.customModel
   const getModelName = useMemo(() => {
     return (modelId: string) => {
       const model = models?.find(m => m.id === modelId)
-      return model?.name || 'Custom Model'
+      return model?.name || customModelLabel
     }
-  }, [models])
+  }, [models, customModelLabel])
 
   const handleCreateSession = () => {
     if (newSessionTitle.trim()) {
@@ -104,7 +108,7 @@ export function SessionManager({
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5" />
-              对话会话
+              {t.chat.sessions}
             </span>
             <Button
               size="sm"
@@ -122,7 +126,7 @@ export function SessionManager({
                 <Input
                   value={newSessionTitle}
                   onChange={(e) => setNewSessionTitle(e.target.value)}
-                  placeholder="会话标题..."
+                  placeholder={t.chat.sessionTitlePlaceholder}
                   className="mb-2"
                   autoFocus
                   onKeyPress={(e) => {
@@ -131,7 +135,7 @@ export function SessionManager({
                 />
                 <div className="flex gap-2">
                   <Button size="sm" onClick={handleCreateSession}>
-                    创建
+                    {t.common.create}
                   </Button>
                   <Button
                     size="sm"
@@ -141,7 +145,7 @@ export function SessionManager({
                       setNewSessionTitle('')
                     }}
                   >
-                    取消
+                    {t.common.cancel}
                   </Button>
                 </div>
               </div>
@@ -149,13 +153,13 @@ export function SessionManager({
 
             {loadingSessions ? (
               <div className="text-center py-8 text-muted-foreground">
-                正在加载会话...
+                {t.common.loading}
               </div>
             ) : sessions.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-sm">暂无对话会话</p>
-                <p className="text-xs mt-2">创建一个会话以开始聊天</p>
+                <p className="text-sm">{t.chat.noSessions}</p>
+                <p className="text-xs mt-2">{t.chat.createToStart}</p>
               </div>
             ) : (
               <div className="space-y-2 pb-4">
@@ -220,11 +224,14 @@ export function SessionManager({
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Clock className="h-3 w-3" />
-                          {formatDistanceToNow(new Date(session.created), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(session.created), {
+                            addSuffix: true,
+                            locale: getDateLocale(language)
+                          })}
                         </div>
                         {session.message_count != null && session.message_count > 0 && (
                           <Badge variant="secondary" className="mt-2 text-xs">
-                            {session.message_count} 条消息
+                            {t.chat.messagesCount.replace('{count}', session.message_count.toString())}
                           </Badge>
                         )}
                         {session.model_override && (
@@ -245,15 +252,15 @@ export function SessionManager({
       <AlertDialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>删除对话会话？</AlertDialogTitle>
+            <AlertDialogTitle>{t.chat.deleteSession}</AlertDialogTitle>
             <AlertDialogDescription>
-              此操作无法撤销。此会话中的所有消息将被永久删除。
+              {t.chat.deleteSessionDesc}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm}>
-              删除
+              {t.common.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

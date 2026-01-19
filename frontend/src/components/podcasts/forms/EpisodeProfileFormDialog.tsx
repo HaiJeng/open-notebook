@@ -10,6 +10,7 @@ import {
   useCreateEpisodeProfile,
   useUpdateEpisodeProfile,
 } from '@/lib/hooks/use-podcasts'
+import { useTranslation } from '@/lib/hooks/use-translation'
 import {
   Dialog,
   DialogContent,
@@ -30,23 +31,24 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
+import { TranslationKeys } from '@/lib/locales'
 
-const episodeProfileSchema = z.object({
-  name: z.string().min(1, '名称是必填项'),
+const episodeProfileSchema = (t: TranslationKeys) => z.object({
+  name: z.string().min(1, t.podcasts.nameRequired || 'Name is required'),
   description: z.string().optional(),
-  speaker_config: z.string().min(1, '演讲者配置是必填项'),
-  outline_provider: z.string().min(1, '大纲提供商是必填项'),
-  outline_model: z.string().min(1, '大纲模型是必填项'),
-  transcript_provider: z.string().min(1, '脚本提供商是必填项'),
-  transcript_model: z.string().min(1, '脚本模型是必填项'),
-  default_briefing: z.string().min(1, '默认简报是必填项'),
+  speaker_config: z.string().min(1, t.podcasts.profileRequired || 'Speaker profile is required'),
+  outline_provider: z.string().min(1, t.podcasts.outlineProviderRequired || 'Outline provider is required'),
+  outline_model: z.string().min(1, t.podcasts.outlineModelRequired || 'Outline model is required'),
+  transcript_provider: z.string().min(1, t.podcasts.transcriptProviderRequired || 'Transcript provider is required'),
+  transcript_model: z.string().min(1, t.podcasts.transcriptModelRequired || 'Transcript model is required'),
+  default_briefing: z.string().min(1, t.podcasts.defaultBriefingRequired || 'Default briefing is required'),
   num_segments: z.number()
-    .int('必须是整数')
-    .min(3, '至少 3 个段落')
-    .max(20, '最多 20 个段落'),
+    .int(t.podcasts.segmentsInteger || 'Must be an integer')
+    .min(3, t.podcasts.segmentsMin || 'At least 3 segments')
+    .max(20, t.podcasts.segmentsMax || 'Maximum 20 segments'),
 })
 
-export type EpisodeProfileFormValues = z.infer<typeof episodeProfileSchema>
+export type EpisodeProfileFormValues = z.infer<ReturnType<typeof episodeProfileSchema>>
 
 interface EpisodeProfileFormDialogProps {
   mode: 'create' | 'edit'
@@ -65,6 +67,7 @@ export function EpisodeProfileFormDialog({
   modelOptions,
   initialData,
 }: EpisodeProfileFormDialogProps) {
+  const { t } = useTranslation()
   const createProfile = useCreateEpisodeProfile()
   const updateProfile = useUpdateEpisodeProfile()
 
@@ -111,7 +114,7 @@ export function EpisodeProfileFormDialog({
     watch,
     formState: { errors },
   } = useForm<EpisodeProfileFormValues>({
-    resolver: zodResolver(episodeProfileSchema),
+    resolver: zodResolver(episodeProfileSchema(t)),
     defaultValues: getDefaults(),
   })
 
@@ -185,27 +188,27 @@ export function EpisodeProfileFormDialog({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? '编辑剧集模板' : '创建剧集模板'}
+            {isEdit ? t.podcasts.editEpisodeProfile : t.podcasts.createEpisodeProfile}
           </DialogTitle>
           <DialogDescription>
-            定义剧集的生成方式以及它们默认使用的演讲者配置。
+            {t.podcasts.episodeProfileFormDesc}
           </DialogDescription>
         </DialogHeader>
 
         {speakerProfiles.length === 0 ? (
-          <Alert className="bg-amber-50 text-amber-900">
-            <AlertTitle>没有可用的演讲者模板</AlertTitle>
+          <Alert className="bg-amber-50 text-amber-900 border-amber-200">
+            <AlertTitle>{t.podcasts.noSpeakerProfilesAvailable}</AlertTitle>
             <AlertDescription>
-              在配置剧集模板之前，请先创建一个演讲者模板。
+              {t.podcasts.noSpeakerProfilesDesc}
             </AlertDescription>
           </Alert>
         ) : null}
 
         {providers.length === 0 ? (
-          <Alert className="bg-amber-50 text-amber-900">
-            <AlertTitle>没有可用的语言模型</AlertTitle>
+          <Alert className="bg-amber-50 text-amber-900 border-amber-200">
+            <AlertTitle>{t.podcasts.noLanguageModelsAvailable}</AlertTitle>
             <AlertDescription>
-              在“模型”部分添加语言模型，以配置大纲和脚本生成。
+              {t.podcasts.noLanguageModelsDesc}
             </AlertDescription>
           </Alert>
         ) : null}
@@ -213,21 +216,22 @@ export function EpisodeProfileFormDialog({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-2">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="name">模板名称 *</Label>
-              <Input id="name" placeholder="技术讨论" {...register('name')} />
+              <Label htmlFor="name">{t.podcasts.profileName} *</Label>
+              <Input id="name" placeholder={t.podcasts.profileNamePlaceholder} {...register('name')} />
               {errors.name ? (
                 <p className="text-xs text-red-600">{errors.name.message}</p>
               ) : null}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="num_segments">段落数量 *</Label>
+              <Label htmlFor="num_segments">{t.podcasts.segments} *</Label>
               <Input
                 id="num_segments"
                 type="number"
                 min={3}
                 max={20}
                 {...register('num_segments', { valueAsNumber: true })}
+                autoComplete="off"
               />
               {errors.num_segments ? (
                 <p className="text-xs text-red-600">{errors.num_segments.message}</p>
@@ -235,12 +239,13 @@ export function EpisodeProfileFormDialog({
             </div>
 
             <div className="md:col-span-2 space-y-2">
-              <Label htmlFor="description">描述</Label>
+              <Label htmlFor="description">{t.common.description}</Label>
               <Textarea
                 id="description"
                 rows={3}
-                placeholder="简要说明何时使用此模板"
+                placeholder={t.podcasts.descriptionPlaceholder}
                 {...register('description')}
+                autoComplete="off"
               />
             </div>
           </div>
@@ -248,7 +253,7 @@ export function EpisodeProfileFormDialog({
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                演讲者配置
+                {t.podcasts.speakerConfig}
               </h3>
               <Separator className="mt-2" />
             </div>
@@ -257,12 +262,12 @@ export function EpisodeProfileFormDialog({
               name="speaker_config"
               render={({ field }) => (
                 <div className="space-y-2">
-                  <Label>演讲者模板 *</Label>
+                  <Label htmlFor="speaker_config">{t.podcasts.speakerProfile} *</Label>
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="选择演讲者模板" />
+                    <SelectTrigger id="speaker_config">
+                      <SelectValue placeholder={t.podcasts.selectSpeakerProfile} />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent title={t.podcasts.speakerProfile}>
                       {speakerProfiles.map((profile) => (
                         <SelectItem key={profile.id} value={profile.name}>
                           {profile.name}
@@ -283,7 +288,7 @@ export function EpisodeProfileFormDialog({
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                大纲生成
+                {t.podcasts.outlineGeneration}
               </h3>
               <Separator className="mt-2" />
             </div>
@@ -293,12 +298,12 @@ export function EpisodeProfileFormDialog({
                 name="outline_provider"
                 render={({ field }) => (
                   <div className="space-y-2">
-                    <Label>提供商 *</Label>
+                    <Label htmlFor="outline_provider">{t.models.provider} *</Label>
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="选择提供商" />
+                      <SelectTrigger id="outline_provider">
+                        <SelectValue placeholder={t.models.selectProviderPlaceholder} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent title={t.models.provider}>
                         {providers.map((provider) => (
                           <SelectItem key={provider} value={provider}>
                             <span className="capitalize">{provider}</span>
@@ -320,12 +325,12 @@ export function EpisodeProfileFormDialog({
                 name="outline_model"
                 render={({ field }) => (
                   <div className="space-y-2">
-                    <Label>模型 *</Label>
+                    <Label htmlFor="outline_model">{t.common.model} *</Label>
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="选择模型" />
+                      <SelectTrigger id="outline_model">
+                        <SelectValue placeholder={t.models.selectModelPlaceholder} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent title={t.common.model}>
                         {availableOutlineModels.map((model) => (
                           <SelectItem key={model} value={model}>
                             {model}
@@ -347,7 +352,7 @@ export function EpisodeProfileFormDialog({
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                脚本生成
+                {t.podcasts.transcriptGeneration}
               </h3>
               <Separator className="mt-2" />
             </div>
@@ -357,12 +362,12 @@ export function EpisodeProfileFormDialog({
                 name="transcript_provider"
                 render={({ field }) => (
                   <div className="space-y-2">
-                    <Label>提供商 *</Label>
+                    <Label htmlFor="transcript_provider">{t.models.provider} *</Label>
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="选择提供商" />
+                      <SelectTrigger id="transcript_provider">
+                        <SelectValue placeholder={t.models.selectProviderPlaceholder} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent title={t.models.provider}>
                         {providers.map((provider) => (
                           <SelectItem key={provider} value={provider}>
                             <span className="capitalize">{provider}</span>
@@ -384,12 +389,12 @@ export function EpisodeProfileFormDialog({
                 name="transcript_model"
                 render={({ field }) => (
                   <div className="space-y-2">
-                    <Label>模型 *</Label>
+                    <Label htmlFor="transcript_model">{t.common.model} *</Label>
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="选择模型" />
+                      <SelectTrigger id="transcript_model">
+                        <SelectValue placeholder={t.models.selectModelPlaceholder} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent title={t.common.model}>
                         {availableTranscriptModels.map((model) => (
                           <SelectItem key={model} value={model}>
                             {model}
@@ -409,11 +414,11 @@ export function EpisodeProfileFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="default_briefing">默认简报 *</Label>
+            <Label htmlFor="default_briefing">{t.podcasts.defaultBriefingTitle} *</Label>
             <Textarea
               id="default_briefing"
               rows={6}
-              placeholder="概述此剧集格式的结构、语气和目标"
+              placeholder={t.podcasts.defaultBriefingPlaceholder}
               {...register('default_briefing')}
             />
             {errors.default_briefing ? (
@@ -429,16 +434,14 @@ export function EpisodeProfileFormDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              取消
+              {t.common.cancel}
             </Button>
             <Button type="submit" disabled={disableSubmit}>
               {isSubmitting
-                ? isEdit
-                  ? '正在保存...'
-                  : '正在创建...'
+                ? t.common.saving
                 : isEdit
-                  ? '保存更改'
-                  : '创建模板'}
+                  ? t.common.saveChanges
+                  : t.podcasts.createProfile}
             </Button>
           </div>
         </form>

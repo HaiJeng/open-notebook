@@ -12,10 +12,11 @@ import { QUERY_KEYS } from '@/lib/api/query-client'
 import { MarkdownEditor } from '@/components/ui/markdown-editor'
 import { InlineEdit } from '@/components/common/InlineEdit'
 import { cn } from "@/lib/utils";
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 const createNoteSchema = z.object({
   title: z.string().optional(),
-  content: z.string().min(1, '内容是必填项'),
+  content: z.string().min(1, 'Content is required'),
 })
 
 type CreateNoteFormData = z.infer<typeof createNoteSchema>
@@ -28,6 +29,7 @@ interface NoteEditorDialogProps {
 }
 
 export function NoteEditorDialog({ open, onOpenChange, notebookId, note }: NoteEditorDialogProps) {
+  const { t } = useTranslation()
   const createNote = useCreateNote()
   const updateNote = useUpdateNote()
   const queryClient = useQueryClient()
@@ -118,25 +120,27 @@ export function NoteEditorDialog({ open, onOpenChange, notebookId, note }: NoteE
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className={cn(
-          "sm:max-w-3xl w-full max-h-[90vh] overflow-y-auto p-0",
+          "sm:max-w-3xl w-full max-h-[90vh] overflow-hidden p-0",
           isEditorFullscreen && "!max-w-screen !max-h-screen border-none w-screen h-screen"
       )}>
         <DialogTitle className="sr-only">
-          {isEditing ? '编辑笔记' : '创建笔记'}
+          {isEditing ? t.sources.editNote : t.sources.createNote}
         </DialogTitle>
         <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
           {isEditing && noteLoading ? (
             <div className="flex-1 flex items-center justify-center py-10">
-              <span className="text-sm text-muted-foreground">正在加载笔记...</span>
+              <span className="text-sm text-muted-foreground">{t.common.loading}</span>
             </div>
           ) : (
             <>
               <div className="border-b px-6 py-4">
                 <InlineEdit
+                  id="note-title"
+                  name="title"
                   value={watchTitle ?? ''}
                   onSave={(value) => setValue('title', value || '')}
-                  placeholder="添加标题..."
-                  emptyText="无标题笔记"
+                  placeholder={t.sources.addTitle}
+                  emptyText={t.sources.untitledNote}
                   className="text-xl font-semibold"
                   inputClassName="text-xl font-semibold"
                 />
@@ -152,10 +156,11 @@ export function NoteEditorDialog({ open, onOpenChange, notebookId, note }: NoteE
                   render={({ field }) => (
                     <MarkdownEditor
                       key={note?.id ?? 'new'}
+                      textareaId="note-content"
                       value={field.value}
                       onChange={field.onChange}
                       height={420}
-                      placeholder="在此处编写笔记内容..."
+                      placeholder={t.sources.writeNotePlaceholder}
                       className={cn(
                           "w-full h-full min-h-[420px] [&_.w-md-editor]:!static [&_.w-md-editor]:!w-full [&_.w-md-editor]:!h-full",
                           !isEditorFullscreen && "rounded-md border"
@@ -172,17 +177,17 @@ export function NoteEditorDialog({ open, onOpenChange, notebookId, note }: NoteE
 
           <div className="border-t px-6 py-4 flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={handleClose}>
-              取消
+              {t.common.cancel}
             </Button>
             <Button
               type="submit"
               disabled={isSaving || (isEditing && noteLoading)}
             >
               {isSaving
-                ? isEditing ? '保存中...' : '创建中...'
+                ? isEditing ? `${t.common.saving}...` : `${t.common.creating}...`
                 : isEditing
-                  ? '保存笔记'
-                  : '创建笔记'}
+                  ? t.sources.saveNote
+                  : t.sources.createNoteBtn}
             </Button>
           </div>
         </form>

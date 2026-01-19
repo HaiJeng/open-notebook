@@ -1,6 +1,7 @@
 "use client"
 
 import { FormSection } from "@/components/ui/form-section"
+import { useTranslation } from "@/lib/hooks/use-translation"
 import { CheckboxList } from "@/components/ui/checkbox-list"
 import { NotebookResponse } from "@/lib/types/api"
 
@@ -17,6 +18,7 @@ export function NotebooksStep({
   onToggleNotebook,
   loading = false
 }: NotebooksStepProps) {
+  const { t } = useTranslation()
   const notebookItems = notebooks.map((notebook) => ({
     id: notebook.id,
     title: notebook.name,
@@ -26,15 +28,15 @@ export function NotebooksStep({
   return (
     <div className="space-y-6">
       <FormSection
-        title="选择笔记本（可选）"
-        description="选择应包含此资源的笔记本。您可以选择多个笔记本，也可以留空。"
+        title={`${t.notebooks.title} (${t.common.optional})`}
+        description={t.sources.addExistingDesc}
       >
         <CheckboxList
           items={notebookItems}
           selectedIds={selectedNotebooks}
           onToggle={onToggleNotebook}
           loading={loading}
-          emptyMessage="未找到笔记本。"
+          emptyMessage={t.sources.noNotebooksFound}
         />
       </FormSection>
     </div>

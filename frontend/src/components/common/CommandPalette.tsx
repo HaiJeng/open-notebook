@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useId } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCreateDialogs } from '@/lib/hooks/use-create-dialogs'
 import { useNotebooks } from '@/lib/hooks/use-notebooks'
@@ -29,31 +29,39 @@ import {
   Monitor,
   Loader2,
 } from 'lucide-react'
+import { useTranslation } from '@/lib/hooks/use-translation'
+import { TranslationKeys } from '@/lib/locales'
 
-const navigationItems = [
-  { name: '资源', href: '/sources', icon: FileText, keywords: ['files', 'documents', 'upload', '文件', '文档', '上传'] },
-  { name: '笔记本', href: '/notebooks', icon: Book, keywords: ['notes', 'research', 'projects', '笔记', '研究', '项目'] },
-  { name: '询问和搜索', href: '/search', icon: Search, keywords: ['find', 'query', '查找', '搜索'] },
-  { name: '播客', href: '/podcasts', icon: Mic, keywords: ['audio', 'episodes', 'generate', '音频', '生成'] },
-  { name: '模型', href: '/models', icon: Bot, keywords: ['ai', 'llm', 'providers', 'openai', 'anthropic', '人工智能'] },
-  { name: '转换', href: '/transformations', icon: Shuffle, keywords: ['prompts', 'templates', 'actions', '模板', '操作'] },
-  { name: '设置', href: '/settings', icon: Settings, keywords: ['preferences', 'config', 'options', '配置', '选项'] },
-  { name: '高级', href: '/advanced', icon: Wrench, keywords: ['debug', 'system', 'tools', '调试', '系统', '工具'] },
+const getNavigationItems = (t: TranslationKeys) => [
+  { name: t.navigation.sources, href: '/sources', icon: FileText, keywords: ['files', 'documents', 'upload'] },
+  { name: t.navigation.notebooks, href: '/notebooks', icon: Book, keywords: ['notes', 'research', 'projects'] },
+  { name: t.navigation.askAndSearch, href: '/search', icon: Search, keywords: ['find', 'query'] },
+  { name: t.navigation.podcasts, href: '/podcasts', icon: Mic, keywords: ['audio', 'episodes', 'generate'] },
+  { name: t.navigation.models, href: '/models', icon: Bot, keywords: ['ai', 'llm', 'providers', 'openai', 'anthropic'] },
+  { name: t.navigation.transformations, href: '/transformations', icon: Shuffle, keywords: ['prompts', 'templates', 'actions'] },
+  { name: t.navigation.settings, href: '/settings', icon: Settings, keywords: ['preferences', 'config', 'options'] },
+  { name: t.navigation.advanced, href: '/advanced', icon: Wrench, keywords: ['debug', 'system', 'tools'] },
 ]
 
-const createItems = [
-  { name: '创建资源', action: 'source', icon: FileText },
-  { name: '创建笔记本', action: 'notebook', icon: Book },
-  { name: '创建播客', action: 'podcast', icon: Mic },
+const getCreateItems = (t: TranslationKeys) => [
+  { name: t.common.newSource, action: 'source', icon: FileText },
+  { name: t.common.newNotebook, action: 'notebook', icon: Book },
+  { name: t.common.newPodcast, action: 'podcast', icon: Mic },
 ]
 
-const themeItems = [
-  { name: '浅色主题', value: 'light' as const, icon: Sun, keywords: ['bright', 'day', '明亮', '白天'] },
-  { name: '深色主题', value: 'dark' as const, icon: Moon, keywords: ['night', '晚上', '黑暗'] },
-  { name: '系统主题', value: 'system' as const, icon: Monitor, keywords: ['auto', 'default', '自动', '默认'] },
+const getThemeItems = (t: TranslationKeys) => [
+  { name: t.common.light, value: 'light' as const, icon: Sun, keywords: ['bright', 'day'] },
+  { name: t.common.dark, value: 'dark' as const, icon: Moon, keywords: ['night'] },
+  { name: t.common.system, value: 'system' as const, icon: Monitor, keywords: ['auto', 'default'] },
 ]
 
 export function CommandPalette() {
+  const { t } = useTranslation()
+  const commandInputId = useId()
+  const navigationItems = useMemo(() => getNavigationItems(t), [t])
+  const createItems = useMemo(() => getCreateItems(t), [t])
+  const themeItems = useMemo(() => getThemeItems(t), [t])
+  
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const router = useRouter()
@@ -147,7 +155,7 @@ export function CommandPalette() {
         (nb.description && nb.description.toLowerCase().includes(queryLower))
       ) ?? false)
     )
-  }, [queryLower, notebooks])
+  }, [queryLower, notebooks, navigationItems, createItems, themeItems])
 
   // Determine if we should show the Search/Ask section at the top
   const showSearchFirst = query.trim() && !hasCommandMatch
@@ -156,26 +164,30 @@ export function CommandPalette() {
     <CommandDialog
       open={open}
       onOpenChange={setOpen}
-      title="命令面板"
-      description="导航、搜索或询问您的知识库"
+      title={t.common.quickActions}
+      description={t.common.quickActionsDesc}
       className="sm:max-w-lg"
     >
       <CommandInput
-        placeholder="输入命令或搜索..."
+        id={commandInputId}
+        name="command-search"
+        placeholder={t.searchPage.enterSearchPlaceholder}
         value={query}
         onValueChange={setQuery}
+        aria-label={t.common.search}
+        autoComplete="off"
       />
       <CommandList>
         {/* Search/Ask - show FIRST when there's a query with no command match */}
         {showSearchFirst && (
-          <CommandGroup heading="搜索和询问" forceMount>
+          <CommandGroup heading={t.searchPage.searchAndAsk} forceMount>
             <CommandItem
               value={`__search__ ${query}`}
               onSelect={handleSearch}
               forceMount
             >
               <Search className="h-4 w-4" />
-              <span>搜索“{query}”</span>
+              <span>{t.searchPage.searchResultsFor.replace('{query}', query)}</span>
             </CommandItem>
             <CommandItem
               value={`__ask__ ${query}`}
@@ -183,13 +195,13 @@ export function CommandPalette() {
               forceMount
             >
               <MessageCircleQuestion className="h-4 w-4" />
-              <span>询问关于“{query}”</span>
+              <span>{t.searchPage.askAbout.replace('{query}', query)}</span>
             </CommandItem>
           </CommandGroup>
         )}
 
         {/* Navigation */}
-        <CommandGroup heading="导航">
+        <CommandGroup heading={t.navigation.nav}>
           {navigationItems.map((item) => (
             <CommandItem
               key={item.href}
@@ -203,11 +215,11 @@ export function CommandPalette() {
         </CommandGroup>
 
         {/* Notebooks */}
-        <CommandGroup heading="笔记本">
+        <CommandGroup heading={t.notebooks.title}>
           {notebooksLoading ? (
             <CommandItem disabled>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>加载笔记本中...</span>
+              <span>{t.common.loading}</span>
             </CommandItem>
           ) : notebooks && notebooks.length > 0 ? (
             notebooks.map((notebook) => (
@@ -224,7 +236,7 @@ export function CommandPalette() {
         </CommandGroup>
 
         {/* Create */}
-        <CommandGroup heading="创建">
+        <CommandGroup heading={t.navigation.create}>
           {createItems.map((item) => (
             <CommandItem
               key={item.action}
@@ -238,7 +250,7 @@ export function CommandPalette() {
         </CommandGroup>
 
         {/* Theme */}
-        <CommandGroup heading="主题">
+        <CommandGroup heading={t.navigation.theme}>
           {themeItems.map((item) => (
             <CommandItem
               key={item.value}
@@ -255,14 +267,14 @@ export function CommandPalette() {
         {query.trim() && hasCommandMatch && (
           <>
             <CommandSeparator />
-            <CommandGroup heading="或搜索您的知识库" forceMount>
+            <CommandGroup heading={t.searchPage.orSearchKb} forceMount>
               <CommandItem
                 value={`__search__ ${query}`}
                 onSelect={handleSearch}
                 forceMount
               >
                 <Search className="h-4 w-4" />
-                <span>搜索“{query}”</span>
+                <span>{t.searchPage.searchResultsFor.replace('{query}', query)}</span>
               </CommandItem>
               <CommandItem
                 value={`__ask__ ${query}`}
@@ -270,7 +282,7 @@ export function CommandPalette() {
                 forceMount
               >
                 <MessageCircleQuestion className="h-4 w-4" />
-                <span>询问关于“{query}”</span>
+                <span>{t.searchPage.askAbout.replace('{query}', query)}</span>
               </CommandItem>
             </CommandGroup>
           </>

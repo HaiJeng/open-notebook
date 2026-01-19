@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, ExternalLink } from 'lucide-react'
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 interface EmbeddingModelChangeDialogProps {
   open: boolean
@@ -30,6 +31,7 @@ export function EmbeddingModelChangeDialog({
   oldModelName,
   newModelName
 }: EmbeddingModelChangeDialogProps) {
+  const { t } = useTranslation()
   const router = useRouter()
   const [isConfirming, setIsConfirming] = useState(false)
 
@@ -55,54 +57,49 @@ export function EmbeddingModelChangeDialog({
         <AlertDialogHeader>
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className="h-5 w-5 text-yellow-500" />
-            <AlertDialogTitle>嵌入模型更改</AlertDialogTitle>
+            <AlertDialogTitle>{t.models.embeddingChangeTitle}</AlertDialogTitle>
           </div>
           <AlertDialogDescription asChild>
             <div className="space-y-3 text-base text-muted-foreground">
               <p>
-                您即将更改嵌入模型{' '}
-                {oldModelName && newModelName && (
-                  <>
-                    从 <strong>{oldModelName}</strong> 更改为 <strong>{newModelName}</strong>
-                  </>
-                )}
-                。
+                {t.models.embeddingChangeConfirm
+                  .replace('{from}', oldModelName || '...')
+                  .replace('{to}', newModelName || '...')}
               </p>
 
               <div className="bg-muted p-4 rounded-md space-y-2">
-                <p className="font-semibold text-foreground">⚠️ 重要：需要重建</p>
+                <p className="font-semibold text-foreground">⚠️ {t.models.rebuildRequired}</p>
                 <p className="text-sm">
-                  更改嵌入模型需要重建所有现有嵌入以保持一致性。
-                  如果不进行重建，您的搜索可能会返回错误或不完整的结果。
+                  {t.models.rebuildReason}
                 </p>
               </div>
 
               <div className="space-y-2 text-sm">
-                <p className="font-medium text-foreground">接下来的步骤：</p>
+                <p className="font-medium text-foreground">{t.models.whatHappensNext}</p>
                 <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>您的默认嵌入模型将被更新</li>
-                  <li>在重建之前，现有嵌入将保持不变</li>
-                  <li>新内容将使用新的嵌入模型</li>
-                  <li>您应该尽快重建嵌入</li>
+                  <li>{t.models.step1}</li>
+                  <li>{t.models.step2}</li>
+                  <li>{t.models.step3}</li>
+                  <li>{t.models.step4}</li>
                 </ul>
               </div>
 
               <p className="text-sm font-medium text-foreground">
-                您想前往“高级”页面现在开始重建吗？
+                {t.models.proceedToRebuildPrompt}
               </p>
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex-col sm:flex-row gap-2">
           <AlertDialogCancel disabled={isConfirming}>
-            取消
+            {t.common.cancel}
           </AlertDialogCancel>
           <Button
             variant="outline"
             onClick={handleConfirmOnly}
             disabled={isConfirming}
           >
-            仅更改模型
+            {t.models.changeModelOnly}
           </Button>
           <AlertDialogAction
             onClick={handleConfirmAndRebuild}
@@ -110,7 +107,7 @@ export function EmbeddingModelChangeDialog({
             className="bg-primary"
           >
             <ExternalLink className="mr-2 h-4 w-4" />
-            更改并前往重建
+            {t.models.changeAndRebuild}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

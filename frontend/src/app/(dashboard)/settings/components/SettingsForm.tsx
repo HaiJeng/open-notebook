@@ -13,6 +13,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { useSettings, useUpdateSettings } from '@/lib/hooks/use-settings'
 import { useEffect, useState } from 'react'
 import { ChevronDownIcon } from 'lucide-react'
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 const settingsSchema = z.object({
   default_content_processing_engine_doc: z.enum(['auto', 'docling', 'simple']).optional(),
@@ -24,9 +25,15 @@ const settingsSchema = z.object({
 type SettingsFormData = z.infer<typeof settingsSchema>
 
 export function SettingsForm() {
+  const { t } = useTranslation()
   const { data: settings, isLoading, error } = useSettings()
   const updateSettings = useUpdateSettings()
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    doc: false,
+    url: false,
+    embedding: false,
+    files: false
+  })
   const [hasResetForm, setHasResetForm] = useState(false)
   
   
@@ -78,9 +85,9 @@ export function SettingsForm() {
   if (error) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>加载设置失败</AlertTitle>
+        <AlertTitle>{t.settings.loadFailed}</AlertTitle>
         <AlertDescription>
-          {error instanceof Error ? error.message : '发生了意外错误。'}
+          {error instanceof Error ? error.message : t.common.error}
         </AlertDescription>
       </Alert>
     )
@@ -90,31 +97,32 @@ export function SettingsForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>内容处理</CardTitle>
+          <CardTitle>{t.settings.contentProcessing}</CardTitle>
           <CardDescription>
-            配置文档和 URL 的处理方式
+            {t.settings.contentProcessingDesc}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            <Label htmlFor="doc_engine">文档处理引擎</Label>
+            <Label htmlFor="doc_engine">{t.settings.docEngine}</Label>
             <Controller
               name="default_content_processing_engine_doc"
               control={control}
               render={({ field }) => (
-                <Select
-                  key={field.value}
-                  value={field.value || ''}
-                  onValueChange={field.onChange}
-                  disabled={field.disabled || isLoading}
-                >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="选择文档处理引擎" />
-                    </SelectTrigger>
+                  <Select
+                    key={field.value}
+                    name={field.name}
+                    value={field.value || ''}
+                    onValueChange={field.onChange}
+                    disabled={field.disabled || isLoading}
+                  >
+                      <SelectTrigger id="doc_engine" className="w-full">
+                        <SelectValue placeholder={t.settings.docEnginePlaceholder} />
+                      </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="auto">自动 (推荐)</SelectItem>
-                      <SelectItem value="docling">Docling</SelectItem>
-                      <SelectItem value="simple">简单</SelectItem>
+                      <SelectItem value="auto">{t.settings.autoRecommended}</SelectItem>
+                      <SelectItem value="docling">{t.settings.docling}</SelectItem>
+                      <SelectItem value="simple">{t.settings.simple}</SelectItem>
                     </SelectContent>
                   </Select>
               )}
@@ -122,143 +130,135 @@ export function SettingsForm() {
             <Collapsible open={expandedSections.doc} onOpenChange={() => toggleSection('doc')}>
               <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ChevronDownIcon className={`h-4 w-4 transition-transform ${expandedSections.doc ? 'rotate-180' : ''}`} />
-                帮我选择
+                {t.settings.helpMeChoose}
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-2 text-sm text-muted-foreground space-y-2">
-                <p>• <strong>Docling</strong> 稍慢，但更准确，特别是如果文档包含表格和图像。</p>
-                <p>• <strong>简单</strong> 将提取文档中的任何内容而不进行格式化。对于简单文档来说没问题，但在复杂文档中会损失质量。</p>
-                <p>• <strong>自动 (推荐)</strong> 将尝试通过 Docling 处理，并默认回退到简单。</p>
+                <p>{t.settings.docHelp}</p>
               </CollapsibleContent>
             </Collapsible>
           </div>
           
           <div className="space-y-3">
-            <Label htmlFor="url_engine">URL 处理引擎</Label>
+            <Label htmlFor="url_engine">{t.settings.urlEngine}</Label>
             <Controller
               name="default_content_processing_engine_url"
               control={control}
               render={({ field }) => (
                 <Select
                   key={field.value}
+                  name={field.name}
                   value={field.value || ''}
                   onValueChange={field.onChange}
                   disabled={field.disabled || isLoading}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="选择 URL 处理引擎" />
+                  <SelectTrigger id="url_engine" className="w-full">
+                    <SelectValue placeholder={t.settings.urlEnginePlaceholder} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="auto">自动 (推荐)</SelectItem>
-                    <SelectItem value="firecrawl">Firecrawl</SelectItem>
-                    <SelectItem value="jina">Jina</SelectItem>
-                    <SelectItem value="simple">简单</SelectItem>
+                    <SelectItem value="auto">{t.settings.autoRecommended}</SelectItem>
+                    <SelectItem value="firecrawl">{t.settings.firecrawl}</SelectItem>
+                    <SelectItem value="jina">{t.settings.jina}</SelectItem>
+                    <SelectItem value="simple">{t.settings.simple}</SelectItem>
                   </SelectContent>
                 </Select>
               )}
             />
-            <Collapsible open={expandedSections.url} onOpenChange={() => toggleSection('url')}>
+             <Collapsible open={expandedSections.url} onOpenChange={() => toggleSection('url')}>
               <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ChevronDownIcon className={`h-4 w-4 transition-transform ${expandedSections.url ? 'rotate-180' : ''}`} />
-                帮我选择
+                {t.settings.helpMeChoose}
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-2 text-sm text-muted-foreground space-y-2">
-                <p>• <strong>Firecrawl</strong> 是一项付费服务（有免费层级），且功能非常强大。</p>
-                <p>• <strong>Jina</strong> 也是一个不错的选择，同样有免费层级。</p>
-                <p>• <strong>简单</strong> 将使用基础的 HTTP 提取，在基于 JavaScript 的网站上会丢失内容。</p>
-                <p>• <strong>自动 (推荐)</strong> 将尝试使用 Firecrawl（如果提供 API 密钥）。然后，它将使用 Jina 直到达到限制（或者如果您设置了 API 密钥，它将继续使用 Jina）。当上述选项都不可用时，它将回退到简单。</p>
+                <p>{t.settings.urlHelp}</p>
               </CollapsibleContent>
             </Collapsible>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
+       <Card>
         <CardHeader>
-          <CardTitle>嵌入与搜索</CardTitle>
+          <CardTitle>{t.settings.embeddingAndSearch}</CardTitle>
           <CardDescription>
-            配置搜索和嵌入选项
+            {t.settings.embeddingAndSearchDesc}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-3">
-            <Label htmlFor="embedding">默认嵌入选项</Label>
+           <div className="space-y-3">
+            <Label htmlFor="embedding">{t.settings.defaultEmbeddingOption}</Label>
             <Controller
               name="default_embedding_option"
               control={control}
               render={({ field }) => (
                 <Select
                   key={field.value}
+                  name={field.name}
                   value={field.value || ''}
                   onValueChange={field.onChange}
                   disabled={field.disabled || isLoading}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="选择嵌入选项" />
+                  <SelectTrigger id="embedding" className="w-full">
+                    <SelectValue placeholder={t.settings.embeddingOptionPlaceholder} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ask">询问</SelectItem>
-                    <SelectItem value="always">总是</SelectItem>
-                    <SelectItem value="never">从不</SelectItem>
+                    <SelectItem value="ask">{t.settings.ask}</SelectItem>
+                    <SelectItem value="always">{t.settings.always}</SelectItem>
+                    <SelectItem value="never">{t.settings.never}</SelectItem>
                   </SelectContent>
                 </Select>
               )}
             />
-            <Collapsible open={expandedSections.embedding} onOpenChange={() => toggleSection('embedding')}>
+             <Collapsible open={expandedSections.embedding} onOpenChange={() => toggleSection('embedding')}>
               <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ChevronDownIcon className={`h-4 w-4 transition-transform ${expandedSections.embedding ? 'rotate-180' : ''}`} />
-                帮我选择
+                {t.settings.helpMeChoose}
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-2 text-sm text-muted-foreground space-y-2">
-                <p>对内容进行嵌入将使您和您的 AI 代理更容易找到它。如果您正在运行本地嵌入模型（例如 Ollama），您无需担心成本，只需嵌入所有内容即可。对于在线提供商，仅当您处理大量内容（例如每天数百份文档）时，才需要谨慎处理。</p>
-                <p>• 如果您正在运行本地嵌入模型，或者您的内容量不是很大，请选择<strong>总是</strong></p>
-                <p>• 如果您想每次都自行决定，请选择<strong>询问</strong></p>
-                <p>• 如果您不在乎向量搜索或者没有嵌入提供商，请选择<strong>从不</strong>。</p>
-                <p>作为参考，OpenAI 的 text-embedding-3-small 每 100 万个 token 的成本约为 0.02 美元——这大约是地球维基百科页面的 30 倍。使用 Gemini API，Text Embedding 004 是免费的，速率限制为每分钟 1500 个请求。</p>
+                <p>{t.settings.embeddingHelp}</p>
               </CollapsibleContent>
             </Collapsible>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
+       <Card>
         <CardHeader>
-          <CardTitle>文件管理</CardTitle>
+          <CardTitle>{t.settings.fileManagement}</CardTitle>
           <CardDescription>
-            配置文件处理和存储选项
+            {t.settings.fileManagementDesc}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-3">
-            <Label htmlFor="auto_delete">自动删除文件</Label>
+           <div className="space-y-3">
+            <Label htmlFor="auto_delete">{t.settings.autoDeleteFiles}</Label>
             <Controller
               name="auto_delete_files"
               control={control}
               render={({ field }) => (
                 <Select
                   key={field.value}
+                  name={field.name}
                   value={field.value || ''}
                   onValueChange={field.onChange}
                   disabled={field.disabled || isLoading}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="选择自动删除选项" />
+                  <SelectTrigger id="auto_delete" className="w-full">
+                    <SelectValue placeholder={t.settings.autoDeletePlaceholder} />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="yes">是</SelectItem>
-                    <SelectItem value="no">否</SelectItem>
+                   <SelectContent>
+                    <SelectItem value="yes">{t.common.yes}</SelectItem>
+                    <SelectItem value="no">{t.common.no}</SelectItem>
                   </SelectContent>
                 </Select>
               )}
             />
-            <Collapsible open={expandedSections.files} onOpenChange={() => toggleSection('files')}>
+             <Collapsible open={expandedSections.files} onOpenChange={() => toggleSection('files')}>
               <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ChevronDownIcon className={`h-4 w-4 transition-transform ${expandedSections.files ? 'rotate-180' : ''}`} />
-                帮我选择
+                {t.settings.helpMeChoose}
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-2 text-sm text-muted-foreground space-y-2">
-                <p>一旦您的文件上传并处理完毕，就不再需要它们了。大多数用户应允许 Open Notebook 自动从上传文件夹中删除上传的文件。只有在您将笔记本作为这些文件的主要存储位置时才选择<strong>否</strong>（您根本不应该这样做）。此选项很快将被弃用，转而采用始终下载文件的方式。</p>
-                <p>• 选择<strong>是</strong>（推荐）以在处理后自动删除上传的文件</p>
-                <p>• 仅当您需要保留上传文件夹中的原始文件时，才选择<strong>否</strong></p>
+                <p>{t.settings.filesHelp}</p>
               </CollapsibleContent>
             </Collapsible>
           </div>
@@ -266,11 +266,11 @@ export function SettingsForm() {
       </Card>
 
       <div className="flex justify-end">
-        <Button 
+         <Button 
           type="submit" 
           disabled={!isDirty || updateSettings.isPending}
         >
-          {updateSettings.isPending ? '正在保存...' : '保存设置'}
+          {updateSettings.isPending ? t.common.saving : t.navigation.settings}
         </Button>
       </div>
     </form>

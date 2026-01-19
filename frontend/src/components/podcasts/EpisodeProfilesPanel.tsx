@@ -36,6 +36,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 interface EpisodeProfilesPanelProps {
   episodeProfiles: EpisodeProfile[]
@@ -55,6 +56,7 @@ export function EpisodeProfilesPanel({
   speakerProfiles,
   modelOptions,
 }: EpisodeProfilesPanelProps) {
+  const { t } = useTranslation()
   const [createOpen, setCreateOpen] = useState(false)
   const [editProfile, setEditProfile] = useState<EpisodeProfile | null>(null)
 
@@ -63,7 +65,7 @@ export function EpisodeProfilesPanel({
 
   const sortedProfiles = useMemo(
     () =>
-      [...episodeProfiles].sort((a, b) => a.name.localeCompare(b.name, 'en')), 
+      [...episodeProfiles].sort((a, b) => a.name.localeCompare(b.name, 'en')),
     [episodeProfiles]
   )
 
@@ -73,25 +75,25 @@ export function EpisodeProfilesPanel({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold">剧集配置</h2>
+          <h2 className="text-lg font-semibold">{t.podcasts.episodeProfilesTitle}</h2>
           <p className="text-sm text-muted-foreground">
-            为您的节目定义可重用的生成设置。
+            {t.podcasts.episodeProfilesDesc}
           </p>
         </div>
         <Button onClick={() => setCreateOpen(true)} disabled={disableCreate}>
-          创建配置
+          {t.podcasts.createProfile}
         </Button>
       </div>
 
       {disableCreate ? (
         <p className="rounded-lg border border-dashed bg-amber-50 p-4 text-sm text-amber-900">
-          在添加剧集配置之前，请先创建一个演讲者配置。
+          {t.podcasts.createSpeakerFirst}
         </p>
       ) : null}
 
       {sortedProfiles.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-muted/30 p-10 text-center text-sm text-muted-foreground">
-          暂无剧集配置。创建一个以启动播客生成。
+          {t.podcasts.noEpisodeProfiles}
         </div>
       ) : (
         <div className="space-y-4">
@@ -109,7 +111,7 @@ export function EpisodeProfilesPanel({
                       {profile.name}
                     </CardTitle>
                     <CardDescription className="text-sm text-muted-foreground">
-                      {profile.description || '暂无描述。'}
+                      {profile.description || t.podcasts.noDescription}
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-1">
@@ -118,7 +120,7 @@ export function EpisodeProfilesPanel({
                       size="sm"
                       onClick={() => setEditProfile(profile)}
                     >
-                      <Edit3 className="mr-2 h-4 w-4" /> 编辑
+                      <Edit3 className="mr-2 h-4 w-4" /> {t.podcasts.edit}
                     </Button>
                     <AlertDialog>
                       <DropdownMenu>
@@ -142,31 +144,31 @@ export function EpisodeProfilesPanel({
                             disabled={duplicateProfile.isPending}
                           >
                             <Copy className="h-4 w-4 mr-2" />
-                            复制
+                            {t.podcasts.duplicate}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <AlertDialogTrigger asChild>
                             <DropdownMenuItem className="text-destructive focus:text-destructive">
                               <Trash2 className="h-4 w-4 mr-2" />
-                              删除
+                              {t.podcasts.delete}
                             </DropdownMenuItem>
                           </AlertDialogTrigger>
                         </DropdownMenuContent>
                       </DropdownMenu>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>删除配置？</AlertDialogTitle>
+                          <AlertDialogTitle>{t.podcasts.deleteProfileTitle}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            这将移除“{profile.name}”。现有的剧集将保留其数据，但新剧集将无法再使用此配置。
+                            {t.podcasts.deleteProfileDesc.replace('{name}', profile.name)}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>取消</AlertDialogCancel>
+                          <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() => deleteProfile.mutate(profile.id)}
                             disabled={deleteProfile.isPending}
                           >
-                            {deleteProfile.isPending ? '删除中…' : '删除'}
+                            {deleteProfile.isPending ? t.podcasts.deleting : t.podcasts.delete}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -178,7 +180,7 @@ export function EpisodeProfilesPanel({
                   <div className="grid gap-3 md:grid-cols-2">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        大纲模型
+                        {t.podcasts.outlineModel}
                       </p>
                       <p className="text-foreground">
                         {profile.outline_provider} / {profile.outline_model}
@@ -186,7 +188,7 @@ export function EpisodeProfilesPanel({
                     </div>
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        转录模型
+                        {t.podcasts.transcriptModel}
                       </p>
                       <p className="text-foreground">
                         {profile.transcript_provider} / {profile.transcript_model}
@@ -194,13 +196,13 @@ export function EpisodeProfilesPanel({
                     </div>
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        段落数
+                        {t.podcasts.segments}
                       </p>
                       <p className="text-foreground">{profile.num_segments}</p>
                     </div>
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        演讲者配置
+                        {t.podcasts.speakerProfile}
                       </p>
                       <div className="flex items-center gap-2 text-foreground">
                         <Users className="h-4 w-4" />
@@ -217,7 +219,7 @@ export function EpisodeProfilesPanel({
                   {profile.default_briefing ? (
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        默认简报
+                        {t.podcasts.defaultBriefingTitle}
                       </p>
                       <p className="mt-1 whitespace-pre-wrap text-muted-foreground">
                         {profile.default_briefing}

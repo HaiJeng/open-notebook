@@ -13,6 +13,7 @@ import { BuildContextRequest, NoteResponse, SourceListResponse } from '@/lib/typ
 import { PodcastGenerationRequest } from '@/lib/types/podcasts'
 import { QUERY_KEYS } from '@/lib/api/query-client'
 import { useToast } from '@/lib/hooks/use-toast'
+import { useTranslation } from '@/lib/hooks/use-translation'
 import {
   Dialog,
   DialogContent,
@@ -30,11 +31,6 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-
-const SOURCE_MODES = [
-  { value: 'insights', label: '摘要' },
-  { value: 'full', label: '全文内容' },
-] as const
 
 type SourceMode = 'off' | 'insights' | 'full'
 
@@ -73,7 +69,308 @@ interface GeneratePodcastDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
+// Extracted component for content selection panel
+function ContentSelectionPanel({
+  notebooks,
+  isLoading,
+  selectedNotebookSummaries,
+  tokenCount,
+  charCount,
+  expandedNotebooks,
+  setExpandedNotebooks,
+  selections,
+  sourcesByNotebook,
+  notesByNotebook,
+  fetchingNotebookIds,
+  handleNotebookToggle,
+  handleSourceModeChange,
+  handleNoteToggle,
+  queryClient,
+}: any) {
+  const { t, language } = useTranslation()
+
+  // Cache all translation strings at render time to avoid repeated Proxy accesses in loops
+  // This prevents the infinite loop detection from triggering
+  const tr = {
+    content: t.podcasts.content,
+    contentDesc: t.podcasts.contentDesc,
+    itemsSelected: t.podcasts.itemsSelected,
+    tokens: t.podcasts.tokens,
+    chars: t.podcasts.chars,
+    loadingNotebooks: t.podcasts.loadingNotebooks,
+    noNotebooksFoundInPodcasts: t.podcasts.noNotebooksFoundInPodcasts,
+    sources: t.podcasts.sources,
+    notes: t.podcasts.notes,
+    noContentSelected: t.podcasts.noContentSelected,
+    noSources: t.podcasts.noSources,
+    untitledSource: t.podcasts.untitledSource,
+    link: t.podcasts.link,
+    file: t.podcasts.file,
+    embedded: t.podcasts.embedded,
+    notEmbedded: t.podcasts.notEmbedded,
+    selectMode: t.podcasts.selectMode,
+    noNotes: t.podcasts.noNotes,
+    untitledNote: t.podcasts.untitledNote,
+    commonUpdated: t.common.updated,
+    summary: t.podcasts.summary,
+    fullContent: t.podcasts.fullContent,
+  }
+
+  // Pre-compute source modes once to avoid repeated t.podcasts access in loops
+  const sourceModes = [
+    { value: 'insights', label: tr.summary },
+    { value: 'full', label: tr.fullContent },
+  ] as const
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            {tr.content}
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            {tr.contentDesc}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline">
+            {tr.itemsSelected.replace(
+              '{count}',
+              selectedNotebookSummaries.reduce(
+                (acc: number, summary: any) => acc + summary.sources + summary.notes,
+                0
+              ).toString()
+            )}
+          </Badge>
+          {(tokenCount > 0 || charCount > 0) && (
+            <span className="text-xs text-muted-foreground">
+              {tokenCount > 0 && tr.tokens.replace('{count}', formatNumber(tokenCount))}
+              {tokenCount > 0 && charCount > 0 && ' / '}
+              {charCount > 0 && tr.chars.replace('{count}', formatNumber(charCount))}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-lg border bg-muted/30">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {tr.loadingNotebooks}
+          </div>
+        ) : notebooks.length === 0 ? (
+          <div className="p-6 text-sm text-muted-foreground">
+            {tr.noNotebooksFoundInPodcasts}
+          </div>
+        ) : (
+          <ScrollArea className="h-[60vh]">
+            <Accordion
+              type="multiple"
+              value={expandedNotebooks}
+              onValueChange={(value) => setExpandedNotebooks(value as string[])}
+              className="w-full"
+            >
+              {notebooks.map((notebook: any, index: number) => {
+                const sources = sourcesByNotebook[notebook.id] ?? []
+                const notes = notesByNotebook[notebook.id] ?? []
+                const selection = selections[notebook.id]
+                const summary = selectedNotebookSummaries[index]
+                const notebookChecked = summary.sources + summary.notes > 0
+                const totalItems = sources.length + notes.length
+                const isIndeterminate =
+                  notebookChecked &&
+                  summary.sources + summary.notes > 0 &&
+                  summary.sources + summary.notes < totalItems
+
+                return (
+                  <AccordionItem key={notebook.id} value={notebook.id}>
+                    <div className="flex items-start gap-3 px-4 pt-3">
+                      <Checkbox
+                        id={`notebook-toggle-${notebook.id}`}
+                        checked={isIndeterminate ? 'indeterminate' : notebookChecked}
+                        onCheckedChange={(checked) => {
+                          handleNotebookToggle(notebook.id, checked)
+                          queryClient.prefetchQuery({
+                            queryKey: QUERY_KEYS.sources(notebook.id),
+                            queryFn: () => sourcesApi.list({ notebook_id: notebook.id }),
+                          })
+                          queryClient.prefetchQuery({
+                            queryKey: QUERY_KEYS.notes(notebook.id),
+                            queryFn: () => notesApi.list({ notebook_id: notebook.id }),
+                          })
+                        }}
+                        onClick={(event) => event.stopPropagation()}
+                      />
+                      <AccordionTrigger className="flex-1 px-0 py-0 hover:no-underline">
+                        <Label
+                          htmlFor={`notebook-toggle-${notebook.id}`}
+                          className="flex w-full items-center justify-between gap-3 pointer-events-none"
+                        >
+                          <div className="text-left">
+                            <p className="font-medium text-sm text-foreground">
+                              {notebook.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {summary.sources + summary.notes > 0
+                                ? `${summary.sources} ${tr.sources}, ${summary.notes} ${tr.notes}`
+                                : tr.noContentSelected}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            {sources.length} {tr.sources} · {notes.length} {tr.notes}
+                          </Badge>
+                        </Label>
+                      </AccordionTrigger>
+                    </div>
+                    <AccordionContent>
+                      <div className="space-y-4 px-4 pb-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              {tr.sources}
+                            </h4>
+                            {fetchingNotebookIds.has(notebook.id) && (
+                              <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                            )}
+                          </div>
+                          {sources.length === 0 ? (
+                            <p className="text-xs text-muted-foreground">
+                              {tr.noSources}
+                            </p>
+                          ) : (
+                            <div className="space-y-2">
+                              {sources.map((source: any) => {
+                                const mode = selection?.sources?.[source.id] ?? 'off'
+                                return (
+                                  <div
+                                    key={source.id}
+                                    className="flex items-center gap-3 rounded border bg-background px-3 py-2"
+                                  >
+                                    <Checkbox
+                                      id={`source-selection-${source.id}`}
+                                      checked={mode !== 'off'}
+                                      onCheckedChange={(checked) =>
+                                        handleSourceModeChange(
+                                          notebook.id,
+                                          source.id,
+                                          checked ? getSourceDefaultMode(source) : 'off'
+                                        )
+                                      }
+                                    />
+                                    <Label
+                                      htmlFor={`source-selection-${source.id}`}
+                                      className="flex flex-1 flex-col gap-1 cursor-pointer"
+                                    >
+                                      <span className="text-sm font-medium text-foreground">
+                                        {source.title || tr.untitledSource}
+                                      </span>
+                                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                        <span>{source.asset?.url ? tr.link : tr.file}</span>
+                                        <span>•</span>
+                                        <span>{source.embedded ? tr.embedded : tr.notEmbedded}</span>
+                                      </div>
+                                    </Label>
+                                    <Select
+                                      value={mode === 'off' ? 'off' : mode}
+                                      onValueChange={(value) =>
+                                        handleSourceModeChange(
+                                          notebook.id,
+                                          source.id,
+                                          value as SourceMode
+                                        )
+                                      }
+                                      disabled={mode === 'off'}
+                                    >
+                                      <SelectTrigger className="w-[140px]">
+                                        <SelectValue placeholder={tr.selectMode} />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {sourceModes.map((option) => (
+                                          <SelectItem
+                                            key={option.value}
+                                            value={option.value}
+                                            disabled={
+                                              option.value === 'insights' &&
+                                              (!source.insights_count || source.insights_count === 0)
+                                            }
+                                          >
+                                            {option.label}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+
+                        <Separator />
+
+                        <div className="space-y-2">
+                          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            {tr.notes}
+                          </h4>
+                          {notes.length === 0 ? (
+                            <p className="text-xs text-muted-foreground">
+                              {tr.noNotes}
+                            </p>
+                          ) : (
+                            <div className="space-y-2">
+                              {notes.map((note: any) => {
+                                const mode = selection?.notes?.[note.id] ?? 'off'
+                                return (
+                                  <div
+                                    key={note.id}
+                                    className="flex items-center gap-3 rounded border bg-background px-3 py-2"
+                                  >
+                                    <Checkbox
+                                      id={`note-selection-${note.id}`}
+                                      checked={mode !== 'off'}
+                                      onCheckedChange={(checked) =>
+                                        handleNoteToggle(
+                                          notebook.id,
+                                          note.id,
+                                          Boolean(checked)
+                                        )
+                                      }
+                                    />
+                                    <Label
+                                      htmlFor={`note-selection-${note.id}`}
+                                      className="flex flex-1 flex-col cursor-pointer"
+                                    >
+                                      <span className="text-sm font-medium text-foreground">
+                                        {note.title || tr.untitledNote}
+                                      </span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {tr.commonUpdated}{' '}
+                                        {new Date(note.updated).toLocaleString(
+                                          language.startsWith('zh') ? language : 'en-US'
+                                        )}
+                                      </span>
+                                    </Label>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )
+              })}
+            </Accordion>
+          </ScrollArea>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDialogProps) {
+  const { t, language } = useTranslation()
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const [expandedNotebooks, setExpandedNotebooks] = useState<string[]>([])
@@ -136,7 +433,37 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
     return map
   }, [notebooks, notesQueries])
 
+  // Stable key for fetching state - only changes when actual fetching states change
+  const fetchingKey = useMemo(
+    () => sourcesQueries.map((q) => q.isFetching ? '1' : '0').join(''),
+    [sourcesQueries]
+  )
+
+  // Stable set of notebook IDs that are currently fetching sources
+  const fetchingNotebookIds = useMemo(() => {
+    const ids = new Set<string>()
+    notebooks.forEach((notebook, index) => {
+      if (sourcesQueries[index]?.isFetching) {
+        ids.add(notebook.id)
+      }
+    })
+    return ids
+  }, [notebooks, fetchingKey])
+
+  // Create a stable key based on actual data to prevent effect running on every render
+  // Only changes when actual source/note IDs change, not on every useQueries reference change
+  const dataKey = useMemo(() => {
+    const sourceIds = sourcesQueries
+      .map((q) => q.data?.map((s) => s.id)?.join(',') ?? '')
+      .join('|')
+    const noteIds = notesQueries
+      .map((q) => q.data?.map((n) => n.id)?.join(',') ?? '')
+      .join('|')
+    return `${sourceIds}::${noteIds}`
+  }, [sourcesQueries, notesQueries])
+
   // Initialise selection defaults when content loads
+  // Using dataKey instead of sourcesQueries/notesQueries to prevent running on every render
   useEffect(() => {
     if (!open) {
       return
@@ -182,7 +509,8 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
 
       return changed ? next : prev
     })
-  }, [open, notebooks, sourcesQueries, notesQueries])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, notebooks, dataKey])
 
   const resetState = useCallback(() => {
     setExpandedNotebooks([])
@@ -415,22 +743,22 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
         const response = await chatApi.buildContext(task.payload)
         const notebookName = notebooks.find((nb) => nb.id === task.notebookId)?.name ?? task.notebookId
         const contextString = JSON.stringify(response.context, null, 2)
-        const snippet = `笔记本: ${notebookName}\n${contextString}`
+        const snippet = `${t.common.notebookLabel.replace('{name}', notebookName)}\n${contextString}`
         parts.push(snippet)
       } catch (error) {
         console.error('Failed to build context for notebook', task.notebookId, error)
-        throw new Error('构建上下文失败。请检查您的选择。')
+        throw new Error(t.podcasts.buildContextFailed)
       }
     }
 
     return parts.join('\n\n')
-  }, [notebooks, selections])
+  }, [notebooks, selections, t])
 
   const handleSubmit = useCallback(async () => {
     if (!selectedEpisodeProfile) {
       toast({
-        title: '需要剧集配置',
-        description: '生成播客前请选择剧集配置。',
+        title: t.podcasts.profileRequired,
+        description: t.podcasts.profileRequiredDesc,
         variant: 'destructive',
       })
       return
@@ -438,8 +766,8 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
 
     if (!episodeName.trim()) {
       toast({
-        title: '需要剧集名称',
-        description: '请为剧集提供名称。',
+        title: t.podcasts.nameRequired,
+        description: t.podcasts.nameRequiredDesc,
         variant: 'destructive',
       })
       return
@@ -450,8 +778,8 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
       const content = await buildContentFromSelections()
       if (!content.trim()) {
         toast({
-          title: '添加内容',
-          description: '请至少选择一个资源或笔记以包含在剧集中。',
+          title: t.podcasts.addContext,
+          description: t.podcasts.addContextDesc,
           variant: 'destructive',
         })
         return
@@ -467,6 +795,11 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
 
       await generatePodcast.mutateAsync(payload)
 
+      toast({
+        title: t.common.success,
+        description: t.podcasts.podcastTaskStarted,
+      })
+
       // Delay closing dialog slightly to ensure refetch completes
       setTimeout(() => {
         onOpenChange(false)
@@ -475,8 +808,8 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
     } catch (error) {
       console.error('Failed to generate podcast', error)
       toast({
-        title: '播客生成失败',
-        description: error instanceof Error ? error.message : '请稍后再试。',
+        title: t.podcasts.generationFailed,
+        description: error instanceof Error ? error.message : t.common.refreshPage,
         variant: 'destructive',
       })
     } finally {
@@ -491,6 +824,7 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
     resetState,
     selectedEpisodeProfile,
     toast,
+    t,
   ])
 
   const isSubmitting = generatePodcast.isPending || isBuildingContext
@@ -504,265 +838,55 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
     }}>
       <DialogContent className="w-[80vw] max-w-[1080px] max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle>生成播客剧集</DialogTitle>
+          <DialogTitle>{t.podcasts.generateEpisode}</DialogTitle>
           <DialogDescription>
-            在生成新播客剧集之前，选择要包含的内容并配置剧集详情。
+            {t.podcasts.generateEpisodeDesc}
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-6 md:grid-cols-[2fr_1fr] xl:grid-cols-[3fr_1fr]">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  内容
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  选择要包含在此剧集中的笔记本、资源和笔记。
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">
-                  已选择{' '}
-                  {selectedNotebookSummaries.reduce(
-                    (acc, summary) => acc + summary.sources + summary.notes,
-                    0
-                  )}{' '}
-                  个项目
-                </Badge>
-                {(tokenCount > 0 || charCount > 0) && (
-                  <span className="text-xs text-muted-foreground">
-                    {tokenCount > 0 && `${formatNumber(tokenCount)} 标记`}
-                    {tokenCount > 0 && charCount > 0 && ' / '}
-                    {charCount > 0 && `${formatNumber(charCount)} 字符`}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="rounded-lg border bg-muted/30">
-              {notebooksQuery.isLoading ? (
-                <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 正在加载笔记本...
-                </div>
-              ) : notebooks.length === 0 ? (
-                <div className="p-6 text-sm text-muted-foreground">
-                  未找到笔记本。在生成播客之前，请先创建一个笔记本并添加内容。
-                </div>
-              ) : (
-                <ScrollArea className="h-[60vh]">
-                  <Accordion
-                    type="multiple"
-                    value={expandedNotebooks}
-                    onValueChange={(value) => setExpandedNotebooks(value as string[])}
-                    className="w-full"
-                  >
-                    {notebooks.map((notebook, index) => {
-                      const sources = sourcesByNotebook[notebook.id] ?? []
-                      const notes = notesByNotebook[notebook.id] ?? []
-                      const selection = selections[notebook.id]
-                      const summary = selectedNotebookSummaries[index]
-                      const notebookChecked = summary.sources + summary.notes > 0
-                      const totalItems = sources.length + notes.length
-                      const isIndeterminate =
-                        notebookChecked &&
-                        summary.sources + summary.notes > 0 &&
-                        summary.sources + summary.notes < totalItems
-
-                      return (
-                        <AccordionItem key={notebook.id} value={notebook.id}>
-                          <div className="flex items-start gap-3 px-4 pt-3">
-                            <Checkbox
-                              checked={isIndeterminate ? 'indeterminate' : notebookChecked}
-                              onCheckedChange={(checked) => {
-                                handleNotebookToggle(notebook.id, checked)
-                                queryClient.prefetchQuery({
-                                  queryKey: QUERY_KEYS.sources(notebook.id),
-                                  queryFn: () => sourcesApi.list({ notebook_id: notebook.id }),
-                                })
-                                queryClient.prefetchQuery({
-                                  queryKey: QUERY_KEYS.notes(notebook.id),
-                                  queryFn: () => notesApi.list({ notebook_id: notebook.id }),
-                                })
-                              }}
-                              onClick={(event) => event.stopPropagation()}
-                            />
-                            <AccordionTrigger className="flex-1 px-0 py-0 hover:no-underline">
-                              <div className="flex w-full items-center justify-between gap-3">
-                                <div className="text-left">
-                                  <p className="font-medium text-sm text-foreground">
-                                    {notebook.name}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {summary.sources + summary.notes > 0
-                                      ? `${summary.sources} 个资源, ${summary.notes} 个笔记`
-                                      : '未选择内容'}
-                                  </p>
-                                </div>
-                                <Badge variant="outline" className="text-xs">
-                                  {sources.length} 个资源 · {notes.length} 个笔记
-                                </Badge>
-                              </div>
-                            </AccordionTrigger>
-                          </div>
-                          <AccordionContent>
-                            <div className="space-y-4 px-4 pb-4">
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                    资源
-                                  </h4>
-                                  {sourcesQueries[index]?.isFetching && (
-                                    <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                                  )}
-                                </div>
-                                {sources.length === 0 ? (
-                                  <p className="text-xs text-muted-foreground">
-                                    此笔记本中没有可用资源。
-                                  </p>
-                                ) : (
-                                  <div className="space-y-2">
-                                    {sources.map((source) => {
-                                      const mode = selection?.sources?.[source.id] ?? 'off'
-                                      return (
-                                        <div
-                                          key={source.id}
-                                          className="flex items-center gap-3 rounded border bg-background px-3 py-2"
-                                        >
-                                          <Checkbox
-                                            checked={mode !== 'off'}
-                                            onCheckedChange={(checked) =>
-                                              handleSourceModeChange(
-                                                notebook.id,
-                                                source.id,
-                                                checked ? getSourceDefaultMode(source) : 'off'
-                                              )
-                                            }
-                                          />
-                                          <div className="flex flex-1 flex-col gap-1">
-                                            <span className="text-sm font-medium text-foreground">
-                                              {source.title || '无标题资源'}
-                                            </span>
-                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                              <span>{source.asset?.url ? '链接' : '文件'}</span>
-                                              <span>•</span>
-                                              <span>{source.embedded ? '已嵌入' : '未嵌入'}</span>
-                                            </div>
-                                          </div>
-                                          <Select
-                                            value={mode === 'off' ? 'off' : mode}
-                                            onValueChange={(value) =>
-                                              handleSourceModeChange(
-                                                notebook.id,
-                                                source.id,
-                                                value as SourceMode
-                                              )
-                                            }
-                                            disabled={mode === 'off'}
-                                          >
-                                            <SelectTrigger className="w-[140px]">
-                                              <SelectValue placeholder="选择模式" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {SOURCE_MODES.map((option) => (
-                                                <SelectItem
-                                                  key={option.value}
-                                                  value={option.value}
-                                                  disabled={
-                                                    option.value === 'insights' &&
-                                                    (!source.insights_count || source.insights_count === 0)
-                                                  }
-                                                >
-                                                  {option.label}
-                                                </SelectItem>
-                                              ))}
-                                            </SelectContent>
-                                          </Select>
-                                        </div>
-                                      )
-                                    })}
-                                  </div>
-                                )}
-                              </div>
-
-                              <Separator />
-
-                              <div className="space-y-2">
-                                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                  笔记
-                                </h4>
-                                {notes.length === 0 ? (
-                                  <p className="text-xs text-muted-foreground">
-                                    此笔记本中没有可用笔记。
-                                  </p>
-                                ) : (
-                                  <div className="space-y-2">
-                                    {notes.map((note) => {
-                                      const mode = selection?.notes?.[note.id] ?? 'off'
-                                      return (
-                                        <div
-                                          key={note.id}
-                                          className="flex items-center gap-3 rounded border bg-background px-3 py-2"
-                                        >
-                                          <Checkbox
-                                            checked={mode !== 'off'}
-                                            onCheckedChange={(checked) =>
-                                              handleNoteToggle(
-                                                notebook.id,
-                                                note.id,
-                                                Boolean(checked)
-                                              )
-                                            }
-                                          />
-                                          <div className="flex flex-1 flex-col">
-                                            <span className="text-sm font-medium text-foreground">
-                                              {note.title || '无标题笔记'}
-                                            </span>
-                                            <span className="text-xs text-muted-foreground">
-                                              更新于 {new Date(note.updated).toLocaleString()}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      )
-                                    })}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      )
-                    })}
-                  </Accordion>
-                </ScrollArea>
-              )}
-            </div>
-          </div>
+          <ContentSelectionPanel
+            notebooks={notebooks}
+            isLoading={notebooksQuery.isLoading}
+            selectedNotebookSummaries={selectedNotebookSummaries}
+            tokenCount={tokenCount}
+            charCount={charCount}
+            expandedNotebooks={expandedNotebooks}
+            setExpandedNotebooks={setExpandedNotebooks}
+            selections={selections}
+            sourcesByNotebook={sourcesByNotebook}
+            notesByNotebook={notesByNotebook}
+            fetchingNotebookIds={fetchingNotebookIds}
+            handleNotebookToggle={handleNotebookToggle}
+            handleSourceModeChange={handleSourceModeChange}
+            handleNoteToggle={handleNoteToggle}
+            queryClient={queryClient}
+          />
 
           <div className="space-y-6">
             <div className="space-y-3">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                剧集设置
+                {t.podcasts.episodeSettings}
               </h3>
               {episodeProfilesQuery.isLoading ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" /> 正在加载剧集配置...
+                  <Loader2 className="h-4 w-4 animate-spin" /> {t.podcasts.loadingProfiles}
                 </div>
               ) : episodeProfiles.length === 0 ? (
                 <div className="rounded-lg border border-dashed bg-muted/30 p-4 text-sm text-muted-foreground">
-                  未找到剧集配置。在生成播客之前，请先创建一个剧集配置。
+                  {t.podcasts.noProfilesFound}
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="episode_profile">剧集配置</Label>
+                    <Label htmlFor="episode_profile">{t.podcasts.episodeProfile}</Label>
                     <Select
                       value={episodeProfileId}
                       onValueChange={setEpisodeProfileId}
                       disabled={episodeProfiles.length === 0}
                     >
                       <SelectTrigger id="episode_profile">
-                        <SelectValue placeholder="选择剧集配置" />
+                        <SelectValue placeholder={t.podcasts.episodeProfilePlaceholder} />
                       </SelectTrigger>
                       <SelectContent>
                         {episodeProfiles.map((profile) => (
@@ -774,56 +898,57 @@ export function GeneratePodcastDialog({ open, onOpenChange }: GeneratePodcastDia
                     </Select>
                     {selectedEpisodeProfile && (
                       <p className="text-xs text-muted-foreground">
-                        使用演讲者配置 <strong>{selectedEpisodeProfile.speaker_config}</strong>
+                        {t.podcasts.usesSpeakerProfile}{' '}
+                        <strong>{selectedEpisodeProfile.speaker_config}</strong>
                       </p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="episode_name">剧集名称</Label>
+                    <Label htmlFor="episode_name">{t.podcasts.episodeName}</Label>
                     <Input
                       id="episode_name"
+                      name="episode_name"
                       value={episodeName}
                       onChange={(event) => setEpisodeName(event.target.value)}
-                      placeholder="例如：人工智能与工作的未来"
+                      placeholder={t.podcasts.episodeNamePlaceholder}
+                      autoComplete="off"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="instructions">附加指令</Label>
+                   <div className="space-y-2">
+                    <Label htmlFor="instructions">{t.podcasts.additionalInstructions}</Label>
                     <Textarea
                       id="instructions"
+                      name="instructions"
+                      placeholder={t.podcasts.instructionsPlaceholder}
                       value={instructions}
                       onChange={(event) => setInstructions(event.target.value)}
-                      placeholder="任何附加的引导，将追加到剧集简报中..."
-                      rows={6}
+                      className="min-h-[100px] text-xs"
+                      autoComplete="off"
                     />
-                    <p className="text-xs text-muted-foreground">
-                      这些指令将追加到剧集配置的默认简报中。
-                    </p>
                   </div>
                 </div>
               )}
             </div>
 
-            <Separator />
-
             <div className="flex flex-col gap-3">
               <Button
                 onClick={handleSubmit}
-                disabled={isSubmitting || episodeProfiles.length === 0}
+                disabled={isSubmitting}
+                className="w-full"
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 正在生成剧集...
-                  </>
-                ) : (
-                  '生成播客'
-                )}
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSubmitting ? t.podcasts.generating : t.podcasts.generate}
               </Button>
-              <p className="text-xs text-muted-foreground">
-                生成开始后，剧集将出现在剧集列表中。刷新列表以监控进度。
-              </p>
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
+                className="w-full"
+              >
+                {t.common.cancel}
+              </Button>
             </div>
           </div>
         </div>

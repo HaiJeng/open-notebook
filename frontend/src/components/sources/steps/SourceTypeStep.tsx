@@ -3,6 +3,7 @@
 import { useMemo } from "react"
 import { Control, FieldErrors, UseFormRegister, useWatch } from "react-hook-form"
 import { FileIcon, LinkIcon, FileTextIcon } from "lucide-react"
+import { useTranslation } from "@/lib/hooks/use-translation"
 import { FormSection } from "@/components/ui/form-section"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
@@ -62,24 +63,26 @@ export function parseAndValidateUrls(text: string): {
   return { valid, invalid }
 }
 
-const SOURCE_TYPES = [
+import { TranslationKeys } from '@/lib/locales'
+
+const getSourceTypes = (t: TranslationKeys) => [
   {
     value: 'link' as const,
-    label: '链接',
+    label: t.sources.addUrl,
     icon: LinkIcon,
-    description: '添加网页或 URL',
+    description: t.sources.processDescription,
   },
   {
     value: 'upload' as const,
-    label: '上传',
+    label: t.sources.uploadFile,
     icon: FileIcon,
-    description: '上传文档或文件',
+    description: t.sources.processDescription,
   },
   {
     value: 'text' as const,
-    label: '文本',
+    label: t.sources.enterText,
     icon: FileTextIcon,
-    description: '直接添加文本内容',
+    description: t.sources.processDescription,
   },
 ]
 
@@ -94,6 +97,7 @@ interface SourceTypeStepProps {
 const MAX_BATCH_SIZE = 50
 
 export function SourceTypeStep({ control, register, errors, urlValidationErrors, onClearUrlErrors }: SourceTypeStepProps) {
+  const { t } = useTranslation()
   // Watch the selected type and inputs to detect batch mode
   const selectedType = useWatch({ control, name: 'type' })
   const urlInput = useWatch({ control, name: 'url' })
@@ -125,8 +129,8 @@ export function SourceTypeStep({ control, register, errors, urlValidationErrors,
   return (
     <div className="space-y-6">
       <FormSection
-        title="资源类型"
-        description="选择添加内容的方式"
+        title={t.sources.title}
+        description={t.sources.processDescription}
       >
         <Controller
           control={control}
@@ -138,7 +142,7 @@ export function SourceTypeStep({ control, register, errors, urlValidationErrors,
               className="w-full"
             >
               <TabsList className="grid w-full grid-cols-3">
-                {SOURCE_TYPES.map((type) => {
+                {getSourceTypes(t).map((type) => {
                   const Icon = type.icon
                   return (
                     <TabsTrigger key={type.value} value={type.value} className="gap-2">
@@ -149,7 +153,7 @@ export function SourceTypeStep({ control, register, errors, urlValidationErrors,
                 })}
               </TabsList>
               
-              {SOURCE_TYPES.map((type) => (
+              {getSourceTypes(t).map((type) => (
                 <TabsContent key={type.value} value={type.value} className="mt-4">
                   <p className="text-sm text-muted-foreground mb-4">{type.description}</p>
                   
@@ -157,11 +161,11 @@ export function SourceTypeStep({ control, register, errors, urlValidationErrors,
                   {type.value === 'link' && (
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <Label htmlFor="url">URL *</Label>
+                        <Label htmlFor="url">{t.sources.urlLabel}</Label>
                         {urlCount > 0 && (
                           <Badge variant={isOverLimit ? "destructive" : "secondary"}>
-                            {urlCount} 个 URL
-                            {isOverLimit && ` (最多 ${MAX_BATCH_SIZE} 个)`}
+                            {t.sources.urlsCount.replace('{count}', urlCount.toString())}
+                            {isOverLimit && ` (${t.sources.maxItems.replace('{count}', MAX_BATCH_SIZE.toString())})`}
                           </Badge>
                         )}
                       </div>
@@ -170,12 +174,12 @@ export function SourceTypeStep({ control, register, errors, urlValidationErrors,
                         {...register('url', {
                           onChange: () => onClearUrlErrors?.()
                         })}
-                        placeholder="输入 URL，每行一个&#10;https://example.com/article1&#10;https://example.com/article2"
+                        placeholder={t.sources.enterUrlsPlaceholder}
                         rows={urlCount > 1 ? 6 : 2}
                         className="font-mono text-sm"
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        粘贴多个 URL（每行一个）以进行批量导入
+                        {t.sources.batchUrlHint}
                       </p>
                       {errors.url && (
                         <p className="text-sm text-destructive mt-1">{errors.url.message}</p>
@@ -183,20 +187,20 @@ export function SourceTypeStep({ control, register, errors, urlValidationErrors,
                       {urlValidationErrors && urlValidationErrors.length > 0 && (
                         <div className="mt-2 p-3 bg-destructive/10 rounded-md border border-destructive/20">
                           <p className="text-sm font-medium text-destructive mb-2">
-                            检测到无效的 URL：
+                            {t.sources.invalidUrlsDetected}
                           </p>
                           <ul className="space-y-1">
                             {urlValidationErrors.map((error, idx) => (
                               <li key={idx} className="text-xs text-destructive flex items-start gap-2">
                                 <span className="font-mono bg-destructive/20 px-1 rounded">
-                                  第 {error.line} 行
+                                  {t.sources.lineLabel.replace('{line}', error.line.toString())}
                                 </span>
                                 <span className="truncate">{error.url}</span>
                               </li>
                             ))}
                           </ul>
                           <p className="text-xs text-muted-foreground mt-2">
-                            请修复或删除无效的 URL 以继续
+                            {t.sources.fixInvalidUrls}
                           </p>
                         </div>
                       )}
@@ -206,11 +210,11 @@ export function SourceTypeStep({ control, register, errors, urlValidationErrors,
                   {type.value === 'upload' && (
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <Label htmlFor="file">文件 *</Label>
+                        <Label htmlFor="file">{t.sources.fileLabel}</Label>
                         {fileCount > 0 && (
                           <Badge variant={isOverLimit ? "destructive" : "secondary"}>
-                            {fileCount} 个文件
-                            {isOverLimit && ` (最多 ${MAX_BATCH_SIZE} 个)`}
+                            {t.sources.filesCount.replace('{count}', fileCount.toString())}
+                            {isOverLimit && ` (${t.sources.maxItems.replace('{count}', MAX_BATCH_SIZE.toString())})`}
                           </Badge>
                         )}
                       </div>
@@ -222,11 +226,11 @@ export function SourceTypeStep({ control, register, errors, urlValidationErrors,
                         accept=".pdf,.doc,.docx,.pptx,.ppt,.xlsx,.xls,.txt,.md,.epub,.mp4,.avi,.mov,.wmv,.mp3,.wav,.m4a,.aac,.jpg,.jpeg,.png,.tiff,.zip,.tar,.gz,.html"
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        选择多个文件进行批量导入。支持：文档 (PDF, DOC, DOCX, PPT, XLS, EPUB, TXT, MD)、多媒体 (MP4, MP3, WAV, M4A)、图像 (JPG, PNG)
+                        {t.sources.selectMultipleFilesHint}
                       </p>
                       {fileCount > 1 && fileInput instanceof FileList && (
                         <div className="mt-2 p-3 bg-muted rounded-md">
-                          <p className="text-xs font-medium mb-2">已选文件：</p>
+                          <p className="text-xs font-medium mb-2">{t.sources.selectedFiles}</p>
                           <ul className="space-y-1 max-h-32 overflow-y-auto">
                             {Array.from(fileInput).map((file, idx) => (
                               <li key={idx} className="text-xs text-muted-foreground flex items-center gap-2">
@@ -245,7 +249,7 @@ export function SourceTypeStep({ control, register, errors, urlValidationErrors,
                       )}
                       {isOverLimit && selectedType === 'upload' && (
                         <p className="text-sm text-destructive mt-1">
-                          每批最多允许 {MAX_BATCH_SIZE} 个文件
+                          {t.sources.maxFilesAllowed.replace('{count}', MAX_BATCH_SIZE.toString())}
                         </p>
                       )}
                     </div>
@@ -253,11 +257,11 @@ export function SourceTypeStep({ control, register, errors, urlValidationErrors,
                   
                   {type.value === 'text' && (
                     <div>
-                      <Label htmlFor="content" className="mb-2 block">文本内容 *</Label>
+                      <Label htmlFor="content" className="mb-2 block">{t.sources.textContentLabel}</Label>
                       <Textarea
                         id="content"
                         {...register('content')}
-                        placeholder="在此粘贴或输入您的内容..."
+                        placeholder={t.sources.textPlaceholder}
                         rows={6}
                       />
                       {errors.content && (
@@ -278,16 +282,18 @@ export function SourceTypeStep({ control, register, errors, urlValidationErrors,
       {/* Hide title field in batch mode - titles will be auto-generated */}
       {!isBatchMode && (
         <FormSection
-          title={selectedType === 'text' ? "标题 *" : "标题（可选）"}
+          htmlFor="source-title"
+          title={selectedType === 'text' ? `${t.common.title} *` : `${t.common.title} (${t.common.optional})`}
           description={selectedType === 'text'
-            ? "文本内容必须有标题"
-            : "如果留空，将根据内容生成标题"
+            ? t.sources.titleRequired
+            : t.sources.titleGenerated
           }
         >
           <Input
-            id="title"
+            id="source-title"
             {...register('title')}
-            placeholder="为您的资源提供一个描述性的标题"
+            placeholder={t.sources.titlePlaceholder}
+            autoComplete="off"
           />
           {errors.title && (
             <p className="text-sm text-destructive mt-1">{errors.title.message}</p>
@@ -299,14 +305,14 @@ export function SourceTypeStep({ control, register, errors, urlValidationErrors,
       {isBatchMode && (
         <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
-            <Badge variant="default">批量模式</Badge>
+            <Badge variant="default">{t.common.batchMode}</Badge>
             <span className="text-sm font-medium">
-              将处理 {itemCount} 个 {selectedType === 'link' ? 'URL' : '文件'}
+              {t.sources.batchCount.replace('{count}', itemCount.toString()).replace('{type}', selectedType === 'link' ? t.sources.addUrl : t.sources.uploadFile)}
             </span>
           </div>
           <p className="text-xs text-muted-foreground">
-            将为每个资源自动生成标题。
-            相同的笔记本和转换将应用于所有项目。
+            {t.sources.batchTitlesAuto}
+            {t.sources.batchCommonSettings}
           </p>
         </div>
       )}

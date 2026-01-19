@@ -26,6 +26,8 @@ import {
   Unlink
 } from 'lucide-react'
 import { useSourceStatus } from '@/lib/hooks/use-sources'
+import { useTranslation } from '@/lib/hooks/use-translation'
+import { TranslationKeys } from '@/lib/locales'
 import { cn } from '@/lib/utils'
 import { ContextToggle } from '@/components/common/ContextToggle'
 import { ContextMode } from '@/app/(dashboard)/notebooks/[id]/page'
@@ -49,53 +51,53 @@ const SOURCE_TYPE_ICONS = {
   text: FileText,
 } as const
 
-const STATUS_CONFIG = {
+const getStatusConfig = (t: TranslationKeys) => ({
   new: {
     icon: Clock,
     color: 'text-blue-600',
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-200',
-    label: '处理中',
-    description: '准备处理'
+    label: t.sources.statusProcessing,
+    description: t.sources.statusPreparingDesc
   },
   queued: {
     icon: Clock,
     color: 'text-blue-600',
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-200',
-    label: '排队中',
-    description: '等待处理'
+    label: t.sources.statusQueued,
+    description: t.sources.statusQueuedDesc
   },
   running: {
     icon: Loader2,
     color: 'text-blue-600',
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-200',
-    label: '处理中',
-    description: '正在处理'
+    label: t.sources.statusProcessing,
+    description: t.sources.statusProcessingDesc
   },
   completed: {
     icon: CheckCircle,
     color: 'text-green-600',
     bgColor: 'bg-green-50',
     borderColor: 'border-green-200',
-    label: '已完成',
-    description: '处理成功'
+    label: t.sources.statusCompleted,
+    description: t.sources.statusCompletedDesc
   },
   failed: {
     icon: AlertTriangle,
     color: 'text-red-600',
     bgColor: 'bg-red-50',
     borderColor: 'border-red-200',
-    label: '失败',
-    description: '处理失败'
+    label: t.sources.statusFailed,
+    description: t.sources.statusFailedDesc
   }
-} as const
+} as const)
 
-type SourceStatus = keyof typeof STATUS_CONFIG
+type SourceStatus = 'new' | 'queued' | 'running' | 'completed' | 'failed'
 
 function isSourceStatus(status: unknown): status is SourceStatus {
-  return typeof status === 'string' && status in STATUS_CONFIG
+  return typeof status === 'string' && ['new', 'queued', 'running', 'completed', 'failed'].includes(status)
 }
 
 function getSourceType(source: SourceListResponse): 'link' | 'upload' | 'text' {
@@ -107,16 +109,18 @@ function getSourceType(source: SourceListResponse): 'link' | 'upload' | 'text' {
 
 export function SourceCard({
   source,
+  onClick,
   onDelete,
   onRetry,
   onRemoveFromNotebook,
-  onClick,
   onRefresh,
   className,
   showRemoveFromNotebook = false,
   contextMode,
   onContextModeChange
 }: SourceCardProps) {
+  const { t } = useTranslation()
+  const statusConfigMap = getStatusConfig(t)
   
   // Only fetch status for sources that might have async processing
   const sourceWithStatus = source as SourceListResponse & { command_id?: string; status?: string }
@@ -163,12 +167,12 @@ export function SourceCard({
     }
   }, [statusData, sourceWithStatus.status, wasProcessing, onRefresh, source.id])
   
-  const statusConfig = STATUS_CONFIG[currentStatus] || STATUS_CONFIG.completed
+  const statusConfig = statusConfigMap[currentStatus] || statusConfigMap.completed
   const StatusIcon = statusConfig.icon
   const sourceType = getSourceType(source)
   const SourceTypeIcon = SOURCE_TYPE_ICONS[sourceType]
   
-  const title = source.title || '未命名资源'
+   const title = source.title || t.sources.untitledSource
 
   const handleRetry = () => {
     if (onRetry) {
@@ -222,13 +226,13 @@ export function SourceCard({
                     'h-3 w-3',
                     isProcessing && 'animate-spin'
                   )} />
-                  {statusLoading && shouldFetchStatus ? '正在检查...' : statusConfig.label}
+                  {statusLoading && shouldFetchStatus ? t.sources.checking : statusConfig.label}
                 </div>
 
                 {/* Source type indicator */}
                 <div className="flex items-center gap-1 text-gray-500">
                   <SourceTypeIcon className="h-3 w-3" />
-                  <span className="text-xs capitalize">{sourceType}</span>
+                  <span className="text-xs capitalize">{t.common.source}</span>
                 </div>
               </div>
             )}
@@ -255,12 +259,12 @@ export function SourceCard({
               {/* Source type badge */}
               <Badge variant="secondary" className="text-xs flex items-center gap-1">
                 <SourceTypeIcon className="h-3 w-3" />
-                {sourceType}
+                {sourceType === 'link' ? t.sources.addUrl : sourceType === 'upload' ? t.sources.uploadFile : t.sources.enterText}
               </Badge>
 
               {isCompleted && source.insights_count > 0 && (
                 <Badge variant="outline" className="text-xs">
-                  {source.insights_count} 条见解
+                  {t.sources.insightsCount.replace('{count}', source.insights_count.toString())}
                 </Badge>
               )}
               {source.topics && source.topics.length > 0 && isCompleted && (
@@ -314,7 +318,7 @@ export function SourceCard({
                     disabled={!onRemoveFromNotebook}
                   >
                     <Unlink className="h-4 w-4 mr-2" />
-                    从笔记本中移除
+                    {t.sources.removeFromNotebook}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
@@ -330,7 +334,7 @@ export function SourceCard({
                     disabled={!onRetry}
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
-                    重试处理
+                    {t.sources.retryProcessing}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
@@ -345,7 +349,7 @@ export function SourceCard({
                 className="text-red-600 focus:text-red-600"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                删除资源
+                {t.sources.deleteSource}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -362,7 +366,7 @@ export function SourceCard({
               className="h-7 text-xs"
             >
               <RefreshCw className="h-3 w-3 mr-1" />
-              重试
+              {t.sources.retry}
             </Button>
           </div>
         )}
@@ -371,7 +375,7 @@ export function SourceCard({
         {isProcessing && statusData?.processing_info?.progress && (
           <div className="mt-3 pt-2 border-t">
             <div className="flex justify-between items-center mb-1">
-              <span className="text-xs text-gray-600">进度</span>
+            <span className="text-xs text-gray-600">{t.common.progress}</span>
               <span className="text-xs text-gray-600">
                 {Math.round(statusData.processing_info.progress as number)}%
               </span>

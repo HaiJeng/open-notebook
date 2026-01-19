@@ -8,8 +8,10 @@ import { useModels, useModelDefaults, useProviders } from '@/lib/hooks/use-model
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useTranslation } from '@/lib/hooks/use-translation'
 
 export default function ModelsPage() {
+  const { t } = useTranslation()
   const { data: models, isLoading: modelsLoading, refetch: refetchModels } = useModels()
   const { data: defaults, isLoading: defaultsLoading, refetch: refetchDefaults } = useModelDefaults()
   const { data: providers, isLoading: providersLoading, refetch: refetchProviders } = useProviders()
@@ -35,7 +37,7 @@ export default function ModelsPage() {
       <AppShell>
         <div className="p-6">
           <div className="text-center py-12">
-            <p className="text-muted-foreground">加载模型数据失败</p>
+            <p className="text-muted-foreground">{t.models.failedToLoad}</p>
           </div>
         </div>
       </AppShell>
@@ -48,9 +50,9 @@ export default function ModelsPage() {
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">模型管理</h1>
+              <h1 className="text-2xl font-bold">{t.models.title}</h1>
               <p className="text-muted-foreground mt-1">
-                为 Open Notebook 中的不同目的配置 AI 模型
+                {t.models.desc}
               </p>
             </div>
             <Button variant="outline" size="sm" onClick={handleRefresh}>
